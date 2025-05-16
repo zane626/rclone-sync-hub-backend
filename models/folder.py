@@ -25,8 +25,12 @@ class FolderBase(BaseModel):
     - name: 文件夹名称
     - parent_id: 父文件夹ID (可选, 根目录则为None)
     """
+    id: Optional[str] = Field(None, alias="_id", description="文件夹唯一标识")
     name: str = Field(..., min_length=1, max_length=100, description="文件夹名称")
-    parent_id: Optional[PyObjectId] = Field(None, description="父文件夹ID")
+    localPath: str = Field(..., min_length=1, max_length=100, description="本地路径")
+    remotePath: str = Field(..., min_length=1, max_length=100, description="远程路径")
+    origin: str = Field(..., min_length=1, max_length=100, description="网盘")
+
 
     @validator('name')
     def name_must_not_be_empty(cls, value):
@@ -42,8 +46,11 @@ class FolderCreate(FolderBase):
 
 class FolderUpdate(BaseModel):
     """用于更新文件夹的请求体"""
-    name: Optional[str] = Field(None, min_length=1, max_length=100, description="文件夹名称")
-    parent_id: Optional[PyObjectId] = Field(None, description="父文件夹ID, null表示不更改或设为根") # 允许设为null来移动到根目录
+    name: str = Field(..., min_length=1, max_length=100, description="文件夹名称")
+    localPath: str = Field(..., min_length=1, max_length=100, description="本地路径")
+    remotePath: str = Field(..., min_length=1, max_length=100, description="远程路径")
+    origin: str = Field(..., min_length=1, max_length=100, description="网盘")
+
 
 class Folder(FolderBase):
     """文件夹完整信息，包含数据库中的 _id 和时间戳"""

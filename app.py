@@ -1,8 +1,10 @@
 from flask import Flask
 from flask_restx import Api
 from routes.demo_routes import api as demo_ns
-from routes.folder_routes import api as folder_ns # 导入新的 folder 命名空间
-from config import DevelopmentConfig, TestingConfig, ProductionConfig # 假设这些配置类已定义
+from routes.folder_routes import api as folder_ns
+from routes.task_routes import api as task_ns
+from routes.rclone_routes import api as rclone_ns
+from config import DevelopmentConfig, TestingConfig, ProductionConfig
 from utils.db import close_db_connection
 import os
 
@@ -28,8 +30,10 @@ def create_app(config_name=None):
               description='RcloneSyncHub 后端接口文档，基于 Flask-RESTX 自动生成',
               doc='/api')
     # 注册命名空间
-    api.add_namespace(demo_ns)
-    api.add_namespace(folder_ns) # 注册 folder 命名空间
+    # api.add_namespace(demo_ns)
+    api.add_namespace(folder_ns)
+    api.add_namespace(task_ns)
+    api.add_namespace(rclone_ns)
 
     # 可以在这里初始化其他扩展，例如 Flask-PyMongo, Flask-Login 等
     # from .utils.db import get_db

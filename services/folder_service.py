@@ -1,31 +1,15 @@
+from __future__ import annotations
 from bson import ObjectId
-from datetime import datetime
 from typing import List, Optional
-from utils.db import get_db
 from models.folder import Folder, FolderCreate, FolderUpdate, PyObjectId
+from services.base_services import BaseServices
 
+class FolderService(BaseServices):
+    def __init__(self):
+        super().__init__('folders')
 
-class FolderService:
-    @property
-    def collection(self):
-        return get_db()['folders']
-
-    def get_all_items(self, query=None, page: int = 1, per_page: int = 10) -> List[dict]:
-        """
-        获取 文件夹 列表，支持分页。
-        """
-        if query is None:
-            query = {}
-        skip = (page - 1) * per_page
-        items_cursor = self.collection.find(query).skip(skip).limit(per_page)
-        items_list = []
-        for item in items_cursor:
-            item['_id'] = str(item['_id'])
-            items_list.append(item)
-        return items_list
-
-    def count_items(self, query=None) -> int:
-        """
-        计算 Item 的总数。
-        """
-        return self.collection.count_documents(filter=query)
+    def check_is_exist(self, local_path: str, remote_path: str, origin: str) -> Folder | None:
+        folder_data = self.collection.find_one({'localPath': local_path, 'remotePath': remote_path, 'origin': origin})
+        if not folder_data:
+            return None
+        return Folder(**folder_data)

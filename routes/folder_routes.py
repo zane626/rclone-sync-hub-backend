@@ -1,9 +1,12 @@
+from datetime import datetime
 from flask import request, abort
 from flask_restx import Namespace, Resource, fields, reqparse
 from bson import ObjectId
 from typing import List, Optional
 from models.folder import Folder as FolderModel, FolderCreate as FolderCreateModel, FolderUpdate as FolderUpdateModel, PyObjectId
 from services.folder_service import FolderService
+import os
+from pydantic import ValidationError
 
 api = Namespace('folders', description='文件夹操作')
 folder_service = FolderService()
@@ -37,7 +40,7 @@ folder_update_fields = api.model('FolderUpdate', {
 list_folders_parser = reqparse.RequestParser()
 list_folders_parser.add_argument('page', type=int, required=False, default=1, help='页码，默认为1')
 list_folders_parser.add_argument('per_page', type=int, required=False, default=10, help='每页数量，默认为10，最大100')
-list_folders_parser.add_argument('query', type=dict, required=False, default={}, help='筛选条件')
+list_folders_parser.add_argument('query', type=str, required=False, default='{}', help='筛选条件')
 
 pagination_model = api.model('PaginatedItemResponse', {
     'items': fields.List(fields.Nested(folder_fields)),
@@ -45,6 +48,20 @@ pagination_model = api.model('PaginatedItemResponse', {
     'per_page': fields.Integer(description='每页数量'),
     'total_items': fields.Integer(description='总物品数'),
     'total_pages': fields.Integer(description='总页数')
+})
+
+
+folder_tree_parser = reqparse.RequestParser()
+folder_tree_parser.add_argument('path', type=str, default='', location='args')
+
+
+folder_tree = api.model('Folder', {
+    'name': fields.String(description='名称', min_length=1, max_length=100),
+    'path': fields.String(description='路径', min_length=1, max_length=100),
+    'is_dir': fields.Boolean(description='是否是文件夹'),
+})
+folder_tree_fields = api.model('PaginatedItemResponse', {
+    'children': fields.List(fields.Nested(folder_tree)),
 })
 
 @api.route('/')
@@ -59,14 +76,21 @@ class FolderList(Resource):
         args = list_folders_parser.parse_args()
         page = args.get('page', 1)
         per_page = args.get('per_page', 10)
-        query = args.get('query', {})
+        query = args.get('query', '{}')
+        if isinstance(query, str):
+            try:
+                query = eval(query)
+            except Exception as e:
+                api.abort(400, f'筛选条件解析错误: {str(e)}')
         if page < 1:
             page = 1
         if per_page < 1:
             per_page = 10
         elif per_page > 100:
             per_page = 100
-        items = folder_service.get_all_items(query=query, page=page, per_page=per_page)
+        items = folder_service.query_page(query=query, page=page, per_page=per_page)
+        for item in items:
+            item['id'] = item.pop('_id')
         total_items = folder_service.count_items(query=query)
         total_pages = (total_items + per_page - 1) // per_page
         return {
@@ -82,25 +106,29 @@ class FolderList(Resource):
     @api.marshal_with(folder_fields, code=201)
     def post(self):
         """创建新文件夹"""
-        data = request.json
         try:
-            # Pydantic 模型验证 (Flask-RESTX 的 validate=True 也会做一些基础验证)
-            folder_create_data = FolderCreateModel(**data)
-        except Exception as pydantic_exc: # 更通用的 Pydantic ValidationError
-            abort(400, f"请求数据校验失败: {pydantic_exc}")
-
-        try:
-            created_folder = run_async(folder_service.create_folder(folder_create_data))
-            return created_folder, 201
-        except LookupError as e: # 父文件夹未找到
-            abort(404, str(e))
-        except ValueError as e: # 名称冲突或其他验证错误
-            abort(400, str(e))
-        except RuntimeError as e: # 创建后无法检索
-            abort(500, str(e))
+            json_data = request.get_json()
+            if not json_data:
+                api.abort(400, '请求体必须为JSON')
+            now = datetime.now()
+            json_data['created_at'] = now
+            json_data['updated_at'] = now
+            item_data = FolderCreateModel(**json_data)
+        except ValidationError as e:
+            api.abort(400, f'参数校验失败: {e.errors()}')
         except Exception as e:
-            # log.error(f"Error creating folder: {e}")
-            abort(500, "创建文件夹时发生内部错误")
+            api.abort(400, str(e))
+        is_exist = folder_service.check_is_exist(item_data.localPath, item_data.remotePath, item_data.origin)
+        if is_exist is None:
+            created_item = folder_service.create_item(item_data)
+            if created_item:
+                created_item['id'] = str(created_item['_id'])
+                return created_item, 201
+        else:
+            api.abort(400, '文件夹已存在')
+        api.abort(500, '创建失败')
+        return None
+
 
 @api.route('/<string:folder_id>')
 @api.response(404, '文件夹未找到')
@@ -111,14 +139,10 @@ class FolderResource(Resource):
     def get(self, folder_id):
         """获取指定ID的文件夹详情"""
         try:
-            folder_id_obj = PyObjectId(folder_id)
-        except ValueError:
-            abort(400, f"无效的文件夹ID格式: {folder_id}")
-        
-        try:
-            folder = run_async(folder_service.get_folder_by_id(folder_id_obj))
+            folder = folder_service.get_item_by_id(folder_id)
             if not folder:
                 abort(404, "文件夹未找到")
+            folder['id'] = str(folder['_id'])
             return folder
         except ValueError as e: # 来自服务层的ID格式错误 (理论上已被上面捕获)
             abort(400, str(e))
@@ -132,11 +156,8 @@ class FolderResource(Resource):
     def put(self, folder_id):
         """更新指定ID的文件夹信息"""
         data = request.json
-        try:
-            folder_id_obj = PyObjectId(folder_id)
-        except ValueError:
-            abort(400, f"无效的文件夹ID格式: {folder_id}")
-
+        now = datetime.now()
+        data['updated_at'] = now
         try:
             # Pydantic 模型验证
             folder_update_data = FolderUpdateModel(**data)
@@ -144,9 +165,10 @@ class FolderResource(Resource):
             abort(400, f"请求数据校验失败: {pydantic_exc}")
 
         try:
-            updated_folder = run_async(folder_service.update_folder(folder_id_obj, folder_update_data))
+            updated_folder = folder_service.update_item(folder_id, folder_update_data)
             if not updated_folder:
                 abort(404, "文件夹未找到或更新失败") # 服务层可能返回None
+            updated_folder['id'] = str(updated_folder['_id'])
             return updated_folder
         except LookupError as e: # 父文件夹或自身未找到
             abort(404, str(e))
@@ -161,12 +183,7 @@ class FolderResource(Resource):
     def delete(self, folder_id):
         """删除指定ID的文件夹"""
         try:
-            folder_id_obj = PyObjectId(folder_id)
-        except ValueError:
-            abort(400, f"无效的文件夹ID格式: {folder_id}")
-        
-        try:
-            success = run_async(folder_service.delete_folder(folder_id_obj))
+            success = folder_service.delete_item(folder_id)
             if not success:
                 # delete_folder 内部会抛出具体的异常，或者返回False
                 # 如果返回False但未抛异常，这里处理
@@ -177,3 +194,34 @@ class FolderResource(Resource):
         except Exception as e:
             # log.error(f"Error deleting folder {folder_id}: {e}")
             abort(500, "删除文件夹时发生内部错误")
+
+
+@api.route('/tree')
+class FolderTreeResource(Resource):
+    @api.doc('获取本地文件夹树')
+    @api.expect(folder_tree_parser)
+    @api.response(200, '查询成功')
+    @api.response(400, '参数错误')
+    @api.marshal_with(folder_tree_fields)
+    def get(self):
+        """获取文件夹树"""
+        args = folder_tree_parser.parse_args()
+        path = args.get('path', '')
+        # 安全校验
+        if not os.path.isabs(path):
+            path = os.path.abspath(os.path.join(os.path.expanduser('~'), path))
+        if not os.path.exists(path) or not os.path.isdir(path):
+            return []
+        try:
+            children = []
+            for item in os.listdir(path):
+                full_path = os.path.join(path, item)
+                children.append({
+                    'name': item,
+                    'path': full_path,
+                    'is_dir': os.path.isdir(full_path)
+                })
+            return {'children': children}
+        except Exception as e:
+            return {'error': str(e)}, 500
+
