@@ -104,7 +104,6 @@ class TaskList(Resource):
         """创建新任务"""
         try:
             json_data = request.get_json()
-            now = datetime.now()
             if not json_data:
                 api.abort(400, '请求体必须为JSON')
             item_data = TaskCreate(**json_data)

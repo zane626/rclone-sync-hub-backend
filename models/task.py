@@ -25,7 +25,7 @@ class TaskBase(BaseModel):
     localPath: Optional[str] = Field(..., min_length=1, max_length=100, description="本地路径")
     remotePath: Optional[str] = Field(..., min_length=1, max_length=100, description="远程路径")
     origin: Optional[str] = Field(..., min_length=1, max_length=100, description="网盘")
-    status: Optional[int] = Field(None, description="任务状态")
+    status: Optional[int] = Field(default=0, description="任务状态")
     progress: Optional[str] = Field(None, description="任务进度")
     speed: Optional[str] = Field(None, description="任务速度")
     eta: Optional[str] = Field(None, description="任务预计完成时间")

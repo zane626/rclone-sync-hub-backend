@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 # 加载 .env 文件中的环境变量
 # 获取当前文件(config.py)所在的目录的父目录 (即 flask_service 目录)
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__)))
 DOTENV_PATH = os.path.join(BASE_DIR, '.env')
 
 if os.path.exists(DOTENV_PATH):
