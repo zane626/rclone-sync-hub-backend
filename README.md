@@ -26,27 +26,23 @@
 
 | 功能模块 | 状态 | 说明 |
 |---------|------|------|
+| 基础接口 | ◻️ | 文件夹和任务创建接口 |
+| WebUI | ◻️ | 响应式界面设计 |
 | 文件监听 | ◻️ | 支持本地文件夹实时监控 |
 | 多线程同步 | ◻️ | 基于Celery实现并发任务处理 |
 | 同步日志 | ◻️ | 记录所有同步操作及结果 |
 | Rclone配置 | ◻️ | 可视化管理远程存储配置 |
 | 同步策略 | ◻️ | 支持定时和手动触发 |
 | 状态看板 | ◻️ | 实时展示同步任务状态 |
-| WebUI | ◻️ | 响应式界面设计 |
 | Docker部署 | ◻️ | 提供容器化一键部署 |
-| Rclone配置生成向导 | ◻️ | 可视化remote创建向导 |
-| 带宽智能调控 | ◻️ | 时间段自动限速功能 |
-| 同步链路加密 | ◻️ | 集成rclone crypt功能 |
-| 批量任务管理 | ◻️ | JSON/YAML格式导入导出 |
-| 质量报告系统 | ◻️ | 传输成功率与速度分析 |
 
 
 
 ## 🚀 快速启动
 ```bash
 # 克隆项目
-git clone https://github.com/yourname/syncwatcher.git
-cd syncwatcher
+git clone https://github.com/zane626/rclone-sync-hub-backend.git
+cd rclone-sync-hub-backend
 
 # 启动服务
 docker-compose up --build
