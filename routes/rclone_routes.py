@@ -10,7 +10,7 @@ from pydantic import ValidationError
 api = Namespace('rclone', description='rclone操作')
 rclone_service = RcloneService()
 
-@api.route('/')
+@api.route('/list')
 class RcloneResource(Resource):
     @api.response(200, '获取成功')
     def get(self):

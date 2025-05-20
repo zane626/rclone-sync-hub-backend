@@ -3,3 +3,4 @@ PyMongo
 python-dotenv
 Pydantic
 flask-restx
+flask-cors

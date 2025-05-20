@@ -7,9 +7,11 @@ from routes.rclone_routes import api as rclone_ns
 from config import DevelopmentConfig, TestingConfig, ProductionConfig
 from utils.db import close_db_connection
 import os
+from flask_cors import CORS
 
 def create_app(config_name=None):
     app = Flask(__name__)
+    CORS(app)  # 默认允许所有域名访问所有路由
 
     if config_name == 'testing':
         app.config.from_object(TestingConfig)
