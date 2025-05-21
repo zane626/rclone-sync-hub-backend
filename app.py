@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_restx import Api
-from routes.demo_routes import api as demo_ns
 from routes.folder_routes import api as folder_ns
 from routes.task_routes import api as task_ns
 from routes.rclone_routes import api as rclone_ns
@@ -32,7 +31,6 @@ def create_app(config_name=None):
               description='RcloneSyncHub 后端接口文档，基于 Flask-RESTX 自动生成',
               doc='/api')
     # 注册命名空间
-    # api.add_namespace(demo_ns)
     api.add_namespace(folder_ns)
     api.add_namespace(task_ns)
     api.add_namespace(rclone_ns)

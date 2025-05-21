@@ -23,7 +23,6 @@ class FolderBase(BaseModel):
     """
     文件夹基础信息
     - name: 文件夹名称
-    - parent_id: 父文件夹ID (可选, 根目录则为None)
     """
     id: Optional[str] = Field(None, alias="_id", description="文件夹唯一标识")
     name: str = Field(..., min_length=1, max_length=100, description="文件夹名称")

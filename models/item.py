@@ -81,6 +81,7 @@ class ItemInDBBase(ItemBase):
             ObjectId: str,
             datetime: lambda v: v.isoformat()
         }
+        allow_population_by_field_name = True
         from_attributes = True # Pydantic V2, or orm_mode = True for V1
         populate_by_name = True # Allows using alias like "_id"
         json_encoders = {
