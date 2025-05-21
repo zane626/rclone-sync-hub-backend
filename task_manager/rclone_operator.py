@@ -27,3 +27,21 @@ def get_rclone_config():
         raise Exception(f"执行rclone命令失败: {error_msg}")
     except json.JSONDecodeError:
         raise Exception("解析rclone配置输出失败")
+
+def check_file_exists(remote_path):
+    """检查远程文件是否存在"""
+    try:
+        result = subprocess.run(
+            ['rclone', 'lsf', remote_path],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding='utf-8'
+        )
+        # 如果命令执行成功且有输出，说明文件存在
+        return bool(result.stdout.strip())
+    except subprocess.CalledProcessError:
+        # 如果命令执行失败，说明文件不存在
+        return False
+    except Exception as e:
+        raise Exception(f"检查文件是否存在时发生错误: {str(e)}")

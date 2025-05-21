@@ -27,7 +27,6 @@ class DatabaseManager:
             if not db_name:
                 db_name = current_app.config.get('MONGO_DEFAULT_DB', 'default_flask_db')
             g.db = client[db_name]
-            print(f"Connected to MongoDB: {db_name}")
         return g.db
 
     @classmethod
@@ -44,7 +43,6 @@ class DatabaseManager:
         if cls._client:
             cls._client.close()
             cls._client = None
-            print("MongoDB connections closed")
 
 # 兼容层（逐步迁移后移除）
 def get_db():
@@ -100,3 +98,19 @@ def get_collection(collection_name):
         # 处理无法获取数据库连接的情况
         raise ConnectionError("Failed to connect to the database.")
     return db[collection_name]
+
+
+class MongoDatabase:
+    """不使用 Flask 上下文的 MongoDB 数据库操作类."""
+
+    def __init__(self, mongo_uri, db_name):
+        self.mongo_uri = mongo_uri
+        self.db_name = db_name
+
+    def get_collection(self, collection_name):
+        """获取指定集合."""
+        client = MongoClient(self.mongo_uri)
+        db = client[self.db_name]
+        return db[collection_name]
+
+mongo_db = MongoDatabase('mongodb://101.226.22.83:17027', 'rclone')

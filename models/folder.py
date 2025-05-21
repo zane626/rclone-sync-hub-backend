@@ -29,6 +29,11 @@ class FolderBase(BaseModel):
     localPath: str = Field(..., min_length=1, max_length=100, description="本地路径")
     remotePath: str = Field(..., min_length=1, max_length=100, description="远程路径")
     origin: str = Field(..., min_length=1, max_length=100, description="网盘")
+    uploadNum: int = Field(default=0, description="上传数量")
+    status: int = Field(default=0, description="文件夹状态，0为未检测，1为检测中，2为监听中")
+    created_at: datetime = Field(default_factory=datetime.now, description="创建时间")
+    updated_at: Optional[datetime] = Field(None, description="最后更新时间")
+    lastSyncAt: Optional[datetime] = Field(None, description="最后同步时间")  # 新增 lastSyncAt
 
 
     @validator('name')
@@ -54,8 +59,6 @@ class FolderUpdate(BaseModel):
 class Folder(FolderBase):
     """文件夹完整信息，包含数据库中的 _id 和时间戳"""
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
-    created_at: datetime = Field(default_factory=datetime.now, description="创建时间")
-    updated_at: Optional[datetime] = Field(None, description="最后更新时间") # 创建时可以为None，更新时设置
 
     class Config:
         json_encoders = {

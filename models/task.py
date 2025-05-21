@@ -8,6 +8,7 @@ from models.base import PyObjectId
 
 class TaskBase(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    folderId: PyObjectId = Field(..., description="文件夹ID")
     name: Optional[str] = Field(..., min_length=1, max_length=100, description="文件夹名称")
     fileName: Optional[str] = Field(..., min_length=1, max_length=100, description="文件名称")
     localPath: Optional[str] = Field(..., min_length=1, max_length=100, description="本地路径")
