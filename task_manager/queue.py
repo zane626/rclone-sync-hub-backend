@@ -1,11 +1,8 @@
 import threading
 import asyncio
 from queue import Queue
+from task_manager.rclone_operator import run_rclone
 from utils.db import mongo_db
-
-def run_task(task_id):
-    print(f"Running task {task_id}")
-    # 在这里执行任务的逻辑
 
 class TaskQueue:
     def __init__(self, num_threads=5):
@@ -31,7 +28,7 @@ class TaskQueue:
             task_id = self.queue.get()
             if task_id is None:
                 break
-            run_task(task_id)
+            run_rclone(task_id)
             self.queue.task_done()
             
             # Wait for a new task if the queue is empty
@@ -52,7 +49,6 @@ class TaskQueue:
             thread.join()
 
     def check_task_to_queue(self, delay):
-        print('检查任务表')
         collection = mongo_db.get_collection('tasks')
         tasks = collection.find({'status': 0})
         for task in tasks:

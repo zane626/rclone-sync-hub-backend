@@ -117,14 +117,12 @@ class TaskManager:
         print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {message}")
 
     def check_folders(self, status, delay):
-        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 检查文件夹")
         collection = self.mongo_db.get_collection('folders')
         folders = collection.find({'status': status})
         for folder in folders:
             collection.update_one({'_id': folder['_id']}, {'$set': {'status': 1}})
             self.scan_directory(folder['localPath'], 10, folder['_id'], folder['name'], folder['remotePath'], folder['origin'])
             collection.update_one({'_id': folder['_id']}, {'$set': {'status': 2}})
-        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 检查文件夹完成 {delay}")
         self.loop.call_later(delay, self.check_folders, 2, delay)
 
     def add_task_with_delay(self, delay):

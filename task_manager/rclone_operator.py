@@ -5,6 +5,7 @@ import sys
 from select import select
 import threading
 import time
+from utils.db import mongo_db
 
 def get_rclone_config():
     try:
@@ -45,3 +46,13 @@ def check_file_exists(remote_path):
         return False
     except Exception as e:
         raise Exception(f"检查文件是否存在时发生错误: {str(e)}")
+
+def run_rclone(task_id):
+    try:
+        collection = mongo_db.get_collection('tasks')
+        task = collection.find_one({'_id': task_id})
+        collection.update_one({'_id': task_id}, {'$set': {'status': 2}})
+        # TODO: 执行 rclone 命令
+        print(task)
+    except Exception as e:
+        print('执行失败', e)
