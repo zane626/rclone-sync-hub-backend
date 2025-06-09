@@ -9,7 +9,7 @@ class BaseServices:
     def collection(self):
         return get_db()[self.collection_name]
 
-    def query_page(self, query=None, page: int = 1, per_page: int = 10):
+    def query_page(self, query=None, sort: str = '-created_at', page: int = 1, per_page: int = 10):
         """
         分页查询
         """
@@ -18,7 +18,14 @@ class BaseServices:
         if 'id' in query:
             query['_id'] = ObjectId(query.pop('id'))
         skip = (page - 1) * per_page
-        items_cursor = self.collection.find(query).skip(skip).limit(per_page)
+        sort_list = []
+        for field in sort.split(','):
+            if field.startswith('-'):
+                sort_list.append((field[1:], -1))
+            else:
+                sort_list.append((field, 1))
+        print(sort_list)
+        items_cursor = self.collection.find(query).sort(sort_list).skip(skip).limit(per_page)
         items_list = []
         for item in items_cursor:
             item['_id'] = str(item['_id'])

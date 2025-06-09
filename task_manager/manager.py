@@ -2,6 +2,8 @@ import asyncio
 import os
 import time
 import threading
+from datetime import datetime
+
 from models.task import TaskCreate
 from task_manager.rclone_operator import check_file_exists
 from utils.db import mongo_db
@@ -107,7 +109,8 @@ class TaskManager:
             'name': folder_name,
             'folderId': folder_id,
             'fileName': filename,
-            'fileSize': self.get_size_format(file_path)
+            'fileSize': self.get_size_format(file_path),
+            'created_at': datetime.now(),
         }
         task_item = TaskCreate(**task_json)
         self.add_task(task_item)
@@ -122,19 +125,23 @@ class TaskManager:
         for folder in folders:
             collection.update_one({'_id': folder['_id']}, {'$set': {'status': 1}})
             self.scan_directory(folder['localPath'], 10, folder['_id'], folder['name'], folder['remotePath'], folder['origin'])
-            collection.update_one({'_id': folder['_id']}, {'$set': {'status': 2}})
+            collection.update_one({'_id': folder['_id']}, {'$set': {'status': 2, 'lastSyncAt': datetime.now()}})
         self.loop.call_later(delay, self.check_folders, 2, delay)
 
     def add_task_with_delay(self, delay):
-        self.loop.call_later(delay, self.check_folders, 2, delay)
+        self.loop.call_later(delay, self.check_folders, 0, delay)
         self.loop.run_forever()
 
-delay = 60 * 10
+_delay = 60 * 0.1
 
 def initialize_the_project():
     '''
     TODO: 从数据库中读取delay时间
     '''
+    folder_collection = mongo_db.get_collection('folders')
+    task_collection = mongo_db.get_collection('tasks')
+    folder_collection.update_many({'status': 1}, {'$set': {'status': 2}})
+    task_collection.update_many({'status': {'$in': [1, 2]}}, {'$set': {'status': 0}})
     threading.Thread(target=loop_check_folders).start()
     threading.Thread(target=loop_check_task).start()
 
@@ -142,9 +149,9 @@ def initialize_the_project():
 
 def loop_check_folders():
     task_manager = TaskManager(mongo_db)
-    task_manager.add_task_with_delay(delay)
+    task_manager.add_task_with_delay(_delay)
 
 
 def loop_check_task():
     task_queue = TaskQueue(num_threads=5)
-    task_queue.add_task_with_delay(delay)
+    task_queue.add_task_with_delay(_delay)

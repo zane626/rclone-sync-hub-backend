@@ -1,7 +1,7 @@
 import threading
 import asyncio
 from queue import Queue
-from task_manager.rclone_operator import run_rclone
+from task_manager.rclone_operator import RcloneCommand
 from utils.db import mongo_db
 
 class TaskQueue:
@@ -28,7 +28,8 @@ class TaskQueue:
             task_id = self.queue.get()
             if task_id is None:
                 break
-            run_rclone(task_id)
+            rclone_command = RcloneCommand({'task_id': task_id})
+            rclone_command.run()
             self.queue.task_done()
             
             # Wait for a new task if the queue is empty
@@ -52,7 +53,7 @@ class TaskQueue:
         collection = mongo_db.get_collection('tasks')
         tasks = collection.find({'status': 0})
         for task in tasks:
-            self.add_task(task['_id'])
+            self.add_task(str(task['_id']))
             collection.update_one({'_id': task['_id']}, {'$set': {'status': 1}})
         self.loop.call_later(delay, self.check_task_to_queue, delay)
 

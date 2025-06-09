@@ -21,7 +21,7 @@ class TaskBase(BaseModel):
     current: Optional[str] = Field(None, description="当前进度")
     total: Optional[str] = Field(None, description="总进度")
     logs: Optional[str] = Field(None, description="任务日志")
-    createdAt: datetime = Field(default_factory=datetime.now, description="创建时间")
+    created_at: datetime = Field(default_factory=datetime.now, description="创建时间")
     startedAt: Optional[datetime] = Field(None, description="开始时间")
     finishedAt: Optional[datetime] = Field(None, description="完成时间")
     duration: Optional[str] = Field(None, description="用时")

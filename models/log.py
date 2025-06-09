@@ -9,7 +9,7 @@ from models.base import PyObjectId
 class LogBase(BaseModel):
     id: Optional[str] = Field(None, alias="_id", description="唯一标识")
     name: str = Field(..., min_length=1, max_length=100, description="日志名称")
-    description: Optional[str] = Field(None, max_length=500, description="日志")
+    description: Optional[str] = Field(..., description="日志")
     created_at: datetime = Field(default_factory=datetime.now, description="创建时间")
 
 class Log(LogBase):

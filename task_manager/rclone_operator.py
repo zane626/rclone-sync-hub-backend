@@ -2,10 +2,13 @@ import subprocess
 import json
 import re
 import sys
+from datetime import datetime
+
 from select import select
 import threading
 import time
 from utils.db import mongo_db
+from bson import ObjectId
 
 def get_rclone_config():
     try:
@@ -47,12 +50,145 @@ def check_file_exists(remote_path):
     except Exception as e:
         raise Exception(f"检查文件是否存在时发生错误: {str(e)}")
 
-def run_rclone(task_id):
-    try:
-        collection = mongo_db.get_collection('tasks')
-        task = collection.find_one({'_id': task_id})
-        collection.update_one({'_id': task_id}, {'$set': {'status': 2}})
-        # TODO: 执行 rclone 命令
-        print(task)
-    except Exception as e:
-        print('执行失败', e)
+
+
+
+class RcloneCommand:
+    def __init__(self, params: dict):
+        self.task_id = ObjectId(params['task_id'])
+        self.other = params.get('other', '--progress')
+        self.collection = mongo_db.get_collection('tasks')
+        self.folder_collection = mongo_db.get_collection('folders')
+        self.task = self.collection.find_one({'_id': self.task_id})
+        self.last_time = time.time()
+        print(self.task)
+        self.created_at = self.task['created_at']
+
+    def update_fields(self, fields_to_update):
+        """
+        通用字段更新方法
+        :param fields_to_update: 字典类型，key为字段名，value为要更新或追加的值
+        :return: UpdateResult
+        """
+        # 构建聚合管道更新操作
+        set_stage = {}
+        for field, value in fields_to_update.items():
+            if field == "logs":
+                # 对 logs 字段特殊处理：字符串追加
+                set_stage[field] = {"$concat": [{"$ifNull": [f"${field}", ""]}, value]}
+            else:
+                # 其他字段直接赋值
+                set_stage[field] = value
+
+        # 执行更新
+        result = self.collection.update_one(
+            {"_id": self.task_id},
+            [{"$set": set_stage}]
+        )
+        return result
+
+    def get_cmd(self):
+        return ['rclone', 'copy', self.task['localPath'], f"{self.task['origin']}:{self.task['remotePath']}", self.other]
+
+    @staticmethod
+    def parse_rclone_progress(line):
+        """
+        解析rclone的进度信息
+        :param line: 进度信息字符串
+        :return: 解析后的进度信息字典
+        """
+        progress_pattern = re.compile(
+            r'Transferred:\s+([\d.]+\s*\w*) / ([\d.]+\s*\w*),\s+(\d+)%,\s+([\d.]+\s*\w+/s),\s+ETA\s+([\dwdhms]+)'
+        )
+        match = progress_pattern.search(line)
+        if match:
+            return {
+                'current': match.group(1),
+                'total': match.group(2),
+                'percent': match.group(3),
+                'speed': match.group(4),
+                'eta': match.group(5)
+            }
+        return None
+
+    def callback(self, params, line=''):
+        now = time.time()
+        if now - self.last_time > 1 and params:
+            self.update_fields({
+                'progress': params.get('percent'),
+                'speed': params.get('speed'),
+                'eta': params.get('eta'),
+                'current': params.get('current'),
+                'total': params.get('total'),
+                'logs': "\n" + line
+            })
+            self.last_time = now
+            return
+        self.update_fields({'logs': "\n" + line})
+
+    def stream_reader(self, stream, is_error=False):
+        """
+        读取并解析rclone的输出流
+        :param stream: 输出流
+        :param is_error: 是否是错误流
+        """
+        for line in iter(stream.readline, ''):
+            if is_error:
+                sys.stderr.write(line)
+                sys.stderr.flush()
+                self.update_fields({'logs': "\nerror:::: " + line})
+            else:
+                progress = self.parse_rclone_progress(line)
+                if progress:
+                    self.callback(progress, line)
+                sys.stdout.write(line)
+                sys.stdout.flush()
+        stream.close()
+
+    def run(self):
+        self.created_at = datetime.now()
+        self.update_fields({'status': 2, 'startedAt': self.created_at})
+        cmd = self.get_cmd()
+        proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                universal_newlines=True,
+                encoding='utf-8'
+            )
+        # 创建独立线程读取输出流
+        stdout_thread = threading.Thread(
+            target=self.stream_reader,
+            args=(proc.stdout, False)
+        )
+        stderr_thread = threading.Thread(
+            target=self.stream_reader,
+            args=(proc.stderr, True)
+        )
+
+        stdout_thread.start()
+        stderr_thread.start()
+
+        # 等待子进程结束
+        proc.wait()
+
+        # 确保线程完成
+        stdout_thread.join()
+        stderr_thread.join()
+
+        if proc.returncode != 0:
+            self.update_fields({
+                'logs': f"\nRclone命令执行失败: {proc.returncode} 命令:{cmd}",
+                'status': 4,
+                'finishedAt': datetime.now(),
+                'duration': str(datetime.now() - self.created_at),
+            })
+        else:
+            self.update_fields({
+                'logs': '\nRclone命令执行成功',
+                'status': 3,
+                'finishedAt': datetime.now(),
+                'duration': str(datetime.now() - self.created_at),
+            })
+

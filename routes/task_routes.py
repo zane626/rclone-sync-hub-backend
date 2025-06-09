@@ -14,9 +14,11 @@ task_service = TaskService()
 
 task_model = api.model('Task', {
     'id': fields.String(alias='_id', description='任务ID'),
-    'localPath': fields.String(required=True, description='本地路径', min_length=1, max_length=100),
-    'remotePath': fields.String(required=True, description='远程路径', min_length=1, max_length=100),
-    'origin': fields.String(required=True, description='网盘', min_length=1, max_length=100),
+    'name': fields.String(description='文件夹名称', min_length=1, max_length=100),
+    'fileName': fields.String(description='文件名称', min_length=1, max_length=100),
+    'localPath': fields.String(description='本地路径', min_length=1, max_length=100),
+    'remotePath': fields.String(description='远程路径', min_length=1, max_length=100),
+    'origin': fields.String(description='网盘', min_length=1, max_length=100),
     'status': fields.Integer(description='任务状态'),
     'progress': fields.String(description='任务进度'),
     'speed': fields.String(description='任务速度'),
@@ -24,7 +26,7 @@ task_model = api.model('Task', {
     'current': fields.String(description='当前进度'),
     'total': fields.String(description='总进度'),
     'logs': fields.String(description='任务日志'),
-    'createdAt': fields.DateTime(dt_format='iso8601', description='创建时间'),
+    'created_at': fields.DateTime(dt_format='iso8601', description='创建时间'),
     'startedAt': fields.DateTime(dt_format='iso8601', description='开始时间'),
     'finishedAt': fields.DateTime(dt_format='iso8601', description='完成时间'),
 })
@@ -86,7 +88,7 @@ class TaskList(Resource):
             per_page = 10
         elif per_page > 100:
             per_page = 100
-        items = task_service.query_page(query=query, page=page, per_page=per_page)
+        items = task_service.query_page(query=query, sort='-created_at', page=page, per_page=per_page)
         total_items = task_service.count_items(query=query)
         total_pages = (total_items + per_page - 1) // per_page
         return {

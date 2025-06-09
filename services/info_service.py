@@ -31,7 +31,7 @@ class InfoService:
             {
                 "$match": {
                     "$or": [
-                        {"createdAt": {"$gte": date_range_start, "$lt": date_range_end}},
+                        {"created_at": {"$gte": date_range_start, "$lt": date_range_end}},
                         {"finishedAt": {"$gte": date_range_start, "$lt": date_range_end}}
                     ]
                 }
@@ -40,7 +40,7 @@ class InfoService:
             {
                 "$addFields": {
                     "createdDate": {
-                        "$dateToString": {"format": "%Y-%m-%d", "date": "$createdAt"}
+                        "$dateToString": {"format": "%Y-%m-%d", "date": "$created_at"}
                     },
                     "finishedDate": {
                         "$dateToString": {"format": "%Y-%m-%d", "date": "$finishedAt"}
