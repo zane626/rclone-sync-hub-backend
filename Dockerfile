@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM docker.1ms.run/ubuntu:20.04
 
 # 设置时区为亚洲/上海
 ENV TZ=Asia/Shanghai
@@ -22,10 +22,15 @@ WORKDIR /app
 COPY . /app/
 
 # 安装Python依赖
-RUN pip3 install -r requirements.txt
+RUN pip3 install -r requirements.txt \
+    -i https://mirrors.aliyun.com/pypi/simple/ \
+    --trusted-host mirrors.aliyun.com \
+    --default-timeout=1000 \
+    --no-cache-dir
+#RUN pip3 install -r requirements.txt
 
 # 暴露端口
-EXPOSE 5000
+EXPOSE 5001
 
 # 启动命令
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--timeout", "120", "app:app"]
+CMD ["python3", "app.py"]

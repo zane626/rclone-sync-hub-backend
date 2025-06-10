@@ -47,6 +47,13 @@ cd rclone-sync-hub-backend
 
 # 启动服务
 docker-compose up --build
+```
 
-# 访问界面
-http://localhost:8080
+#### 使用Docker直接部署
+```bash
+# 构建镜像
+docker build -t rclone-sync-hub-backend .
+
+# 运行容器
+docker run -d -p 5001:5001 --name rclone-sync-hub-backend rclone-sync-hub-backend
+```
