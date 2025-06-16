@@ -1,5 +1,9 @@
+import os
 from pymongo import MongoClient
 from flask import current_app, g
+
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
+MONGO_NAME = 'rclone'
 
 class DatabaseManager:
     """数据库连接管理类"""
@@ -15,7 +19,7 @@ class DatabaseManager:
     def get_client(cls):
         """获取MongoClient实例（连接池）"""
         if not cls._client:
-            cls._client = MongoClient(current_app.config['MONGO_URI'], maxPoolSize=100)
+            cls._client = MongoClient(MONGO_URI + MONGO_NAME, maxPoolSize=100)
         return cls._client
 
     @classmethod
@@ -113,4 +117,4 @@ class MongoDatabase:
         db = client[self.db_name]
         return db[collection_name]
 
-mongo_db = MongoDatabase('mongodb://101.226.22.83:17027', 'rclone')
+mongo_db = MongoDatabase(MONGO_URI, MONGO_NAME)

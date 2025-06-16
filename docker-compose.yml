@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6.0
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: rclone
+    volumes:
+      - ./mongodb_data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - rclone-sync-net
+
+  backend:
+    image: rclone-sync-hub-backend:latest
+    environment:
+      - MONGO_URI=mongodb://admin:password@mongodb:27017/
+    ports:
+      - "5001:5001"  # 暴露后端端口
+    depends_on:
+      - mongodb
+    networks:
+      - rclone-sync-net
+
+  frontend:
+    image: rclone-sync-hub-frontend:latest
+    ports:
+      - "8080:80"
+    environment:
+      - API_URL=http://backend:5001  # 默认API地址，可通过环境变量覆盖
+    networks:
+      - rclone-sync-net
+
+networks:
+  rclone-sync-net:
+    driver: bridge
