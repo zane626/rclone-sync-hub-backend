@@ -3,6 +3,7 @@ from flask_restx import Api
 from routes.folder_routes import api as folder_ns
 from routes.task_routes import api as task_ns
 from routes.rclone_routes import api as rclone_ns
+from routes.info_routes import api as info_ns
 from config import DevelopmentConfig, TestingConfig, ProductionConfig
 from utils.db import close_db_connection
 import os
@@ -35,6 +36,7 @@ def create_app(config_name=None):
     api.add_namespace(folder_ns)
     api.add_namespace(task_ns)
     api.add_namespace(rclone_ns)
+    api.add_namespace(info_ns)
 
     # 可以在这里初始化其他扩展，例如 Flask-PyMongo, Flask-Login 等
     # from .utils.db import get_db
