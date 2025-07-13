@@ -46,7 +46,7 @@ git clone https://github.com/zane626/rclone-sync-hub-backend.git
 cd rclone-sync-hub-backend
 
 # 启动服务
-docker-compose up --build
+docker compose up --build
 ```
 
 #### 使用Docker直接部署
