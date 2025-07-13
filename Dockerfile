@@ -1,4 +1,4 @@
-FROM docker.1ms.run/ubuntu:20.04
+FROM ubuntu:20.04
 
 # 设置时区为亚洲/上海
 ENV TZ=Asia/Shanghai
@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     curl \
     unzip \
-    && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/*
 
 # 安装rclone
 RUN curl https://rclone.org/install.sh | bash
