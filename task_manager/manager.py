@@ -132,7 +132,7 @@ class TaskManager:
         self.loop.call_later(delay, self.check_folders, 0, delay)
         self.loop.run_forever()
 
-_delay = 60 * 0.1
+_delay = 60 * 10
 
 def initialize_the_project():
     '''
@@ -153,5 +153,5 @@ def loop_check_folders():
 
 
 def loop_check_task():
-    task_queue = TaskQueue(num_threads=5)
+    task_queue = TaskQueue(num_threads=2)
     task_queue.add_task_with_delay(_delay)
