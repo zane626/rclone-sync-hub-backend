@@ -13,7 +13,9 @@ task_service = TaskService()
 
 
 task_model = api.model('Task', {
-    'id': fields.String(alias='_id', description='任务ID'),
+    '_id': fields.String(description='任务ID'),
+    'id': fields.String(description='任务ID'),
+    'folderId': fields.String(description='文件夹ID'),
     'name': fields.String(description='文件夹名称', min_length=1, max_length=100),
     'fileName': fields.String(description='文件名称', min_length=1, max_length=100),
     'localPath': fields.String(description='本地路径', min_length=1, max_length=100),
