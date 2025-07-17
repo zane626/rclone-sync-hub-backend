@@ -126,7 +126,7 @@ class TaskManager:
             collection.update_one({'_id': folder['_id']}, {'$set': {'status': 1}})
             self.scan_directory(folder['localPath'], 10, folder['_id'], folder['name'], folder['remotePath'], folder['origin'])
             collection.update_one({'_id': folder['_id']}, {'$set': {'status': 2, 'lastSyncAt': datetime.now()}})
-        self.loop.call_later(delay, self.check_folders, 2, delay)
+        self.loop.call_later(delay, self.check_folders, 0 if status == 2 else 2, delay)
 
     def add_task_with_delay(self, delay):
         self.loop.call_later(delay, self.check_folders, 0, delay)

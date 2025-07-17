@@ -2,8 +2,9 @@ import os
 from pymongo import MongoClient
 from flask import current_app, g
 
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
+MONGO_URI = os.environ.get('MONGO_URI') or 'mongodb://localhost:27017/'
 MONGO_NAME = 'rclone'
+print('db.py =====>', MONGO_URI)
 
 class DatabaseManager:
     """数据库连接管理类"""
@@ -29,7 +30,7 @@ class DatabaseManager:
             client = cls.get_client()
             db_name = current_app.config['MONGO_URI'].split('/')[-1].split('?')[0]
             if not db_name:
-                db_name = current_app.config.get('MONGO_DEFAULT_DB', 'default_flask_db')
+                db_name = current_app.config.get('MONGO_DEFAULT_DB', 'rclone')
             g.db = client[db_name]
         return g.db
 

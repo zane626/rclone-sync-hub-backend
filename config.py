@@ -14,7 +14,8 @@ else:
 class Config:
     """应用配置基类"""
     SECRET_KEY = os.environ.get('FLASK_SECRET_KEY') or 'a_default_fallback_secret_key'
-    MONGO_URI = os.environ.get('MONGO_URI') or 'mongodb://localhost:27017/default_db'
+    MONGO_URI = os.environ.get('MONGO_URI') or 'mongodb://localhost:27017/'
+    print('MONGO_URI =====>', MONGO_URI)
     # 可以添加其他通用配置
 
 class DevelopmentConfig(Config):
