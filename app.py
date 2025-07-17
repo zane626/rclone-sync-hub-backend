@@ -8,7 +8,7 @@ from config import DevelopmentConfig, TestingConfig, ProductionConfig
 from utils.db import close_db_connection
 import os
 from flask_cors import CORS
-from task_manager.manager import initialize_the_project
+# from task_manager.manager import initialize_the_project
 
 def create_app(config_name=None):
     app = Flask(__name__)
@@ -50,7 +50,7 @@ def create_app(config_name=None):
     def shutdown_session(exception=None):
         """在应用上下文销毁时关闭数据库连接"""
         close_db_connection() # 确保在 utils.db 中定义的 close_db_connection 被调用
-    initialize_the_project()
+    # initialize_the_project()
     return app
 
 if __name__ == '__main__':

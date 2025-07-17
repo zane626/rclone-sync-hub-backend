@@ -135,6 +135,7 @@ class TaskManager:
 _delay = 60 * 10
 
 def initialize_the_project():
+    print('------->初始化定时任务脚本<-------')
     '''
     TODO: 从数据库中读取delay时间
     '''

@@ -33,4 +33,4 @@ RUN pip3 install -r requirements.txt \
 EXPOSE 5001
 
 # 启动命令
-CMD ["python3", "app.py"]
+CMD ["gunicorn", "--config", "gunicorn.conf.py", "--bind", "0.0.0.0:5001", "--workers", "1", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "app:create_app()"]

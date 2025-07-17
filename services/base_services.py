@@ -24,7 +24,6 @@ class BaseServices:
                 sort_list.append((field[1:], -1))
             else:
                 sort_list.append((field, 1))
-        print(sort_list)
         items_cursor = self.collection.find(query).sort(sort_list).skip(skip).limit(per_page)
         items_list = []
         for item in items_cursor:
