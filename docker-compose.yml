@@ -5,15 +5,15 @@ services:
     image: mongo:6.0
     environment:
       MONGO_INITDB_DATABASE: rclone
-#    volumes:
-#      - ./mongodb_data:/data/db
+    volumes:
+      - ./mongodb_data:/data/db
     ports:
       - "27017:27017"
     networks:
       - rclone-sync-net
 
   backend:
-    image: rclone-sync-hub-backend:latest
+    image: zane626/rclone-sync-hub-backend:latest
     environment:
       - MONGO_URI=mongodb://mongodb:27017/
     ports:
@@ -24,7 +24,7 @@ services:
       - rclone-sync-net
 
   frontend:
-    image: rclone-sync-hub-frontend:latest
+    image: zane626/rclone-sync-hub-frontend:latest
     ports:
       - "8080:80"
     environment:
