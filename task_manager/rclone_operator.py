@@ -57,7 +57,7 @@ def check_file_exists(remote_path):
 class RcloneCommand:
     def __init__(self, params: dict):
         self.task_id = ObjectId(params['task_id'])
-        self.other = params.get('other', '--progress --use-server-modtime --no-traverse --webdav-chunk-size=64M --timeout=4h --contimeout=10m --expect-continue-timeout=10m --low-level-retries=10 --retries=5 --retries-sleep=30s')
+        self.other = params.get('other', '--progress --use-server-modtime --no-traverse --timeout=4h --contimeout=10m --expect-continue-timeout=10m --low-level-retries=10 --retries=5 --retries-sleep=30s')
         self.collection = mongo_db.get_collection('tasks')
         self.folder_collection = mongo_db.get_collection('folders')
         self.task = self.collection.find_one({'_id': self.task_id})
