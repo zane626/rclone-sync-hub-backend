@@ -2,6 +2,7 @@ import subprocess
 import json
 import re
 import sys
+import shlex
 from datetime import datetime
 
 from select import select
@@ -61,7 +62,6 @@ class RcloneCommand:
         self.folder_collection = mongo_db.get_collection('folders')
         self.task = self.collection.find_one({'_id': self.task_id})
         self.last_time = time.time()
-        print(self.task)
         self.created_at = self.task['created_at']
 
     def update_fields(self, fields_to_update):
@@ -87,8 +87,21 @@ class RcloneCommand:
         )
         return result
 
+
+    def parse_rclone_flags(self):
+        """
+        解析 rclone 附加参数字符串为参数列表。
+        :param flag_string: 例如 "--progress --timeout=4h"
+        :return: ['--progress', '--timeout=4h']
+        """
+        try:
+            return shlex.split(self.other or '')
+        except ValueError as e:
+            print(f"无法解析 rclone 参数字符串: {self.other!r}\n错误信息: {e}")
+            return []
+
     def get_cmd(self):
-        return ['rclone', 'copy', self.task['localPath'], f"{self.task['origin']}:{self.task['remotePath']}", self.other]
+        return ['rclone', 'copy', self.task['localPath'], f"{self.task['origin']}:{self.task['remotePath']}"] + self.parse_rclone_flags()
 
     @staticmethod
     def parse_rclone_progress(line):
