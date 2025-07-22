@@ -132,7 +132,8 @@ class TaskManager:
         self.loop.call_later(delay, self.check_folders, 0, delay)
         self.loop.run_forever()
 
-_delay = 60 * 10
+value = os.environ.get('DELAY')
+_delay = int(value) if value and value.isdigit() else 60 * 10
 
 def initialize_the_project():
     print('------->初始化定时任务脚本<-------')

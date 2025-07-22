@@ -57,3 +57,8 @@ docker build -t rclone-sync-hub-backend .
 # 运行容器
 docker run -d -p 5001:5001 --name rclone-sync-hub-backend rclone-sync-hub-backend
 ```
+# 环境变量
+| 环境变量 | 描述 | 默认 |
+|---------|------| -----|
+| MONGO_URI | MongoDB连接字符串 | mongodb://mongodb:27017/ |
+| DELAY | 同步任务检查间隔(秒) | 600 |

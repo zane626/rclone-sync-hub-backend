@@ -7,7 +7,7 @@ from utils.db import get_db
 class InfoService:
     @property
     def items_collection(self):
-        return get_db()['items']
+        return get_db()['tasks']
 
     @property
     def folders_collection(self):
@@ -118,6 +118,7 @@ class InfoService:
             item['_id'] = str(item['_id'])
             logs_list.append(item)
 
+        print(self.items_collection.count_documents({}))
         result = {
             'folders': self.folders_collection.count_documents({}),
             'uploaded': self.items_collection.count_documents({'status': 2}),
