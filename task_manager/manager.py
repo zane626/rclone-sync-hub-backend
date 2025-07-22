@@ -8,6 +8,8 @@ from models.task import TaskCreate
 from task_manager.rclone_operator import check_file_exists
 from utils.db import mongo_db
 from task_manager.queue import TaskQueue
+from utils.logger import Logger
+
 
 class TaskManager:
     def __init__(self, mongo_db):
@@ -16,6 +18,7 @@ class TaskManager:
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
         self.loop = asyncio.get_event_loop()
+        self.logger = Logger()
 
     def add_task(self, task: TaskCreate):
         collection = self.mongo_db.get_collection('tasks')
@@ -121,11 +124,23 @@ class TaskManager:
 
     def check_folders(self, status, delay):
         collection = self.mongo_db.get_collection('folders')
+        tasks_collection = self.mongo_db.get_collection('tasks')
         folders = collection.find({'status': status})
         for folder in folders:
+            # 记录检测前的任务数量
+            initial_tasks_count = tasks_collection.count_documents({})
             collection.update_one({'_id': folder['_id']}, {'$set': {'status': 1}})
             self.scan_directory(folder['localPath'], 10, folder['_id'], folder['name'], folder['remotePath'], folder['origin'])
+            # 计算新增的任务数量
+            final_tasks_count = tasks_collection.count_documents({})
+            new_tasks_count = final_tasks_count - initial_tasks_count
+            # 更新文件夹状态
             collection.update_one({'_id': folder['_id']}, {'$set': {'status': 2, 'lastSyncAt': datetime.now()}})
+            # 添加日志记录
+            self.logger.add_log({
+                'name': '文件夹检测',
+                'description': f'检测文件夹 {folder["name"]} ({folder["localPath"]})，新增 {new_tasks_count} 个文件任务'
+            })
         self.loop.call_later(delay, self.check_folders, 0 if status == 2 else 2, delay)
 
     def add_task_with_delay(self, delay):

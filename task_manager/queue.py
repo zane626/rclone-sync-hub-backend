@@ -3,6 +3,7 @@ import asyncio
 from queue import Queue
 from task_manager.rclone_operator import RcloneCommand
 from utils.db import mongo_db
+from utils.logger import Logger
 
 class TaskQueue:
     def __init__(self, num_threads=5):
@@ -13,6 +14,7 @@ class TaskQueue:
         self.num_threads = num_threads
         self.threads = []
         self._create_threads()
+        self.logger = Logger()
 
     def _create_threads(self):
         for _ in range(self.num_threads):

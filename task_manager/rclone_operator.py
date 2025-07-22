@@ -10,6 +10,7 @@ import threading
 import time
 from utils.db import mongo_db
 from bson import ObjectId
+from utils.logger import Logger
 
 def get_rclone_config():
     try:
@@ -63,6 +64,7 @@ class RcloneCommand:
         self.task = self.collection.find_one({'_id': self.task_id})
         self.last_time = time.time()
         self.created_at = self.task['created_at']
+        self.logger = Logger()
 
     def update_fields(self, fields_to_update):
         """
@@ -197,11 +199,19 @@ class RcloneCommand:
                 'finishedAt': datetime.now(),
                 'duration': str(datetime.now() - self.created_at),
             })
+            self.logger.add_log({
+                'name': '任务失败',
+                'description': f'任务 {self.task['fileName']} 执行失败 耗时: {str(datetime.now() - self.created_at)} 命令: {cmd} 上传开始时间: {self.created_at} 上传结束时间: {datetime.now()}'
+            })
         else:
             self.update_fields({
                 'logs': '\nRclone命令执行成功',
                 'status': 3,
                 'finishedAt': datetime.now(),
                 'duration': str(datetime.now() - self.created_at),
+            })
+            self.logger.add_log({
+                'name': '任务完成',
+                'description': f'任务 {self.task['fileName']} 已完成 耗时: {str(datetime.now() - self.created_at)}'
             })
 
