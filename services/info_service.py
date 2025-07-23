@@ -112,7 +112,7 @@ class InfoService:
         return final_result
 
     def get_info(self):
-        logs = self.log_collection.find({}).skip(0).limit(10)
+        logs = self.log_collection.find({}).sort([('created_at', -1)]).skip(0).limit(10)
         logs_list = []
         for item in logs:
             item['_id'] = str(item['_id'])

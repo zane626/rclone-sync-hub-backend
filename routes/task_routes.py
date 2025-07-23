@@ -31,6 +31,8 @@ task_model = api.model('Task', {
     'created_at': fields.DateTime(dt_format='iso8601', description='创建时间'),
     'startedAt': fields.DateTime(dt_format='iso8601', description='开始时间'),
     'finishedAt': fields.DateTime(dt_format='iso8601', description='完成时间'),
+    'duration': fields.String(description='任务时长'),
+    'fileSize': fields.String(description='文件大小')
 })
 
 task_create_model = api.model('TaskCreate', {
