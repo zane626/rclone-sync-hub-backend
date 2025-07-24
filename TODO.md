@@ -8,6 +8,7 @@
 # 使用celery来实现多线程任务处理
 celery -A your_app worker --concurrency=4
 
+# 使用celery 搭配 mq 实现任务队列
 
 # 监听文件夹变化
 - 使用celery beat实现定时任务 可以选择周期性检测文件夹变化
