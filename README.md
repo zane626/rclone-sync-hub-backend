@@ -3,6 +3,8 @@
 [![Docker](https://img.shields.io/badge/Docker-3.0+-blue)](https://www.docker.com)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-green)](https://python.org)
 [![Vue](https://img.shields.io/badge/Vue-3.3%2B-brightgreen)](https://vuejs.org)
+[![Celery](https://img.shields.io/badge/Celery-5.3%2B-yellowgreen)](https://docs.celeryq.dev/)
+[![Redis](https://img.shields.io/badge/Redis-7.0%2B-red)](https://redis.io/)
 
 智能文件同步管理系统，基于rclone实现自动化多线程同步，提供可视化监控界面。
 
