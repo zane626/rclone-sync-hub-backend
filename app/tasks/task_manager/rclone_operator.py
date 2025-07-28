@@ -258,7 +258,7 @@ def get_origin_files(origin_path, max_depth):
     '''
     try:
         result = subprocess.run(
-            ['rclone', 'lsjson', origin_path, '--max-depth', max_depth, '--files-only'],
+            ['rclone', 'lsjson', origin_path, '--max-depth', str(max_depth), '--files-only'],
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,

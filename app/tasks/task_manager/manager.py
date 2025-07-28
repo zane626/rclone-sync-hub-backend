@@ -83,7 +83,7 @@ class TaskManager:
         """判断是否跳过当前路径"""
         current_depth = root[len(base_path):].count(os.sep)
         if current_depth > max_depth:
-            print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 超过最大深度{max_depth}层，停止遍历: {root}")
+            print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 超过最大深度{str(max_depth)}层，停止遍历: {root}")
             return True
         return False
     @staticmethod
