@@ -27,7 +27,7 @@ def make_celery(app: Flask = None) -> Celery:
 
 # Create a default Celery app instance for command line use
 app = Flask(__name__)
-app.config.from_object('celery_config')
+# app.config.from_object('celery_config')
 app.config.update(
     CELERY_BROKER_URL=os.environ.get('CELERY_BROKER_URL') or 'redis://localhost:6379/0',
     CELERY_RESULT_BACKEND=os.environ.get('CELERY_RESULT_BACKEND') or 'redis://localhost:6379/0'
