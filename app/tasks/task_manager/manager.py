@@ -72,7 +72,7 @@ class TaskManager:
                 'name': folder_name,
                 'folderId': folder_id,
                 'fileName': filename,
-                'fileSize': self.get_size_format(file['Size']),
+                'fileSize': self.get_size_format('', file['Size']),
                 'created_at': datetime.now(),
             }
             task_item = TaskCreate(**task_json)
@@ -107,8 +107,6 @@ class TaskManager:
 
     @staticmethod
     def get_size_format(file_path: str, size_bytes=None):
-        if not size_bytes:
-            size_bytes = os.path.getsize(file_path)
         """
         将字节数转换为易读的大小格式 (如 2.5MB)
 
@@ -118,18 +116,23 @@ class TaskManager:
         返回:
             str - 格式化的字符串 (如 '250.00KB')
         """
-        units = ['B', 'KB', 'MB', 'GB', 'TB']
-        unit_index = 0
-        size = size_bytes
+        if not size_bytes:
+            size_bytes = os.path.getsize(file_path)
+        try:
+           units = ['B', 'KB', 'MB', 'GB', 'TB']
+           unit_index = 0
+           size = size_bytes
 
-        while size >= 1024 and unit_index < len(units) - 1:
-            size /= 1024
-            unit_index += 1
+           while size >= 1024 and unit_index < len(units) - 1:
+               size /= 1024
+               unit_index += 1
 
-        if unit_index == 0:
-            return f"{int(size)}{units[unit_index]}"
-        else:
-            return f"{size:.2f}{units[unit_index]}"
+           if unit_index == 0:
+               return f"{int(size)}{units[unit_index]}"
+           else:
+               return f"{size:.2f}{units[unit_index]}"
+        except Exception as e:
+            return '0B'
 
     def create_task_if_needed(self, file_path, remote_dir, origin, folder_id, folder_name, filename):
         """创建任务（如果不存在）"""
