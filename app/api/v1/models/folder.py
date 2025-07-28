@@ -27,7 +27,10 @@ class FolderBase(BaseModel):
     id: Optional[str] = Field(None, alias="_id", description="文件夹唯一标识")
     name: str = Field(..., min_length=1, max_length=100, description="文件夹名称")
     localPath: str = Field(..., min_length=1, max_length=100, description="本地路径")
-    remotePath: str = Field(..., min_length=1, max_length=100, description="远程路径")
+    originPath: str = Field(..., min_length=1, max_length=100, description="网盘路径")
+    syncType: str = Field(default="local", min_length=1, max_length=100, description="同步类型")
+    remotePath: str = Field(..., min_length=1, max_length=100, description="目标路径")
+    maxDepth: int = Field(default=10, description="最大深度")
     origin: str = Field(..., min_length=1, max_length=100, description="网盘")
     uploadNum: int = Field(default=0, description="上传数量")
     status: int = Field(default=0, description="文件夹状态，0为未检测，1为检测中，2为监听中")
@@ -52,7 +55,10 @@ class FolderUpdate(BaseModel):
     """用于更新文件夹的请求体"""
     name: str = Field(..., min_length=1, max_length=100, description="文件夹名称")
     localPath: str = Field(..., min_length=1, max_length=100, description="本地路径")
-    remotePath: str = Field(..., min_length=1, max_length=100, description="远程路径")
+    originPath: str = Field(..., min_length=1, max_length=100, description="网盘路径")
+    syncType: str = Field(default="local", min_length=1, max_length=100, description="同步类型")
+    remotePath: str = Field(..., min_length=1, max_length=100, description="目标路径")
+    maxDepth: int = Field(default=10, description="最大深度")
     origin: str = Field(..., min_length=1, max_length=100, description="网盘")
 
 

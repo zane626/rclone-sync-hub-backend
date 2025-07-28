@@ -1,9 +1,8 @@
 from datetime import datetime
 
 from pydantic import BaseModel, Field
-from bson import ObjectId
-from typing import Optional, List
-from app.models.base import PyObjectId
+from typing import Optional
+from app.api.v1.models.base import PyObjectId
 
 
 class TaskBase(BaseModel):

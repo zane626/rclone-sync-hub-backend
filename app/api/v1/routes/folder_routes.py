@@ -1,10 +1,8 @@
 from datetime import datetime
 from flask import request, abort
 from flask_restx import Namespace, Resource, fields, reqparse
-from bson import ObjectId
-from typing import List, Optional
-from app.models.folder import Folder as FolderModel, FolderCreate as FolderCreateModel, FolderUpdate as FolderUpdateModel, PyObjectId
-from app.services.folder_service import FolderService
+from app.api.v1.models.folder import FolderCreate as FolderCreateModel, FolderUpdate as FolderUpdateModel
+from app.api.v1.services.folder_service import FolderService
 import os
 from pydantic import ValidationError
 
@@ -17,7 +15,10 @@ folder_fields = api.model('Folder', {
     'name': fields.String(required=True, description='文件夹名称', min_length=1, max_length=100),
     'origin': fields.String(required=True, description='云盘名称', min_length=1, max_length=100),
     'localPath': fields.String(required=True, description='本地路径', min_length=1, max_length=100),
-    'remotePath': fields.String(required=True, description='远程路径', min_length=1, max_length=100),
+    'originPath': fields.String(required=True, description='远程路径', min_length=1, max_length=100),
+    'syncType': fields.String(required=True, description='同步类型', min_length=1, max_length=100),
+    'remotePath': fields.String(required=True, description='目标路径', min_length=1, max_length=100),
+    'maxDepth': fields.Integer(required=True, description='最大深度'),
     'created_at': fields.DateTime(dt_format='iso8601', description='创建时间'),
     'updated_at': fields.DateTime(dt_format='iso8601', description='最后更新时间')
 })
@@ -26,14 +27,20 @@ folder_create_fields = api.model('FolderCreate', {
     'name': fields.String(required=True, description='文件夹名称', min_length=1, max_length=100),
     'origin': fields.String(required=True, description='云盘名称', min_length=1, max_length=100),
     'localPath': fields.String(required=True, description='本地路径', min_length=1, max_length=100),
-    'remotePath': fields.String(required=True, description='远程路径', min_length=1, max_length=100),
+    'originPath': fields.String(required=True, description='远程路径', min_length=1, max_length=100),
+    'syncType': fields.String(required=True, description='同步类型', min_length=1, max_length=100),
+    'remotePath': fields.String(description='目标路径 ', min_length=1, max_length=100),
+    'maxDepth': fields.Integer(required=True, description='最大深度'),
 })
 
 folder_update_fields = api.model('FolderUpdate', {
     'name': fields.String(required=True, description='文件夹名称', min_length=1, max_length=100),
     'origin': fields.String(required=True, description='云盘名称', min_length=1, max_length=100),
     'localPath': fields.String(required=True, description='本地路径', min_length=1, max_length=100),
-    'remotePath': fields.String(required=True, description='远程路径', min_length=1, max_length=100),
+    'originPath': fields.String(required=True, description='远程路径', min_length=1, max_length=100),
+    'syncType': fields.String(required=True, description='同步类型', min_length=1, max_length=100),
+    'remotePath': fields.String(description='目标路径 ', min_length=1, max_length=100),
+    'maxDepth': fields.Integer(required=True, description='最大深度'),
 })
 
 # --- 请求参数解析器 --- 

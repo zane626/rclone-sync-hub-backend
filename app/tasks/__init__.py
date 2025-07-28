@@ -26,7 +26,7 @@ def sync_task(self, task_id, source_path, destination_path, **kwargs):
         logger.info(f"Starting sync task {task_id}: {source_path} -> {destination_path}")
         
         # Update task status in database
-        from app.services.task_service import TaskService
+        from app.api.v1.services import TaskService
         TaskService.update_task_status(task_id, 'in_progress')
         
         # Here you would implement the actual sync logic

@@ -52,9 +52,6 @@ def check_file_exists(remote_path):
     except Exception as e:
         raise Exception(f"检查文件是否存在时发生错误: {str(e)}")
 
-
-
-
 class RcloneCommand:
     def __init__(self, params: dict):
         self.task_id = ObjectId(params['task_id'])
@@ -215,3 +212,67 @@ class RcloneCommand:
                 'description': f'任务 {self.task["fileName"]} 已完成 耗时: {str(datetime.now() - self.created_at)}'
             })
 
+
+def get_origin_size(origin_id):
+    try:
+        result = subprocess.run(
+            ['rclone', 'size', origin_id + ':', '--json', '--fast-list'],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding='utf-8'
+        )
+        return result.stdout
+
+    except FileNotFoundError:
+        raise Exception("Rclone未安装或未添加到系统PATH")
+    except subprocess.CalledProcessError as e:
+        error_msg = e.stderr or '未知错误'
+        raise Exception(f"执行rclone命令失败: {error_msg}")
+    except json.JSONDecodeError:
+        raise Exception("解析rclone配置输出失败")
+
+def get_rclone_origin_list():
+    rclone_list = get_rclone_config()
+    result = []
+    for rclone in rclone_list:
+        try:
+            size = get_origin_size(rclone)
+            size_json = json.loads(size.strip())
+            result.append({
+                'name': rclone,
+                'size_json': size.strip(),
+                'count': size_json['count'],
+                'bytes': size_json['bytes'],
+                'sizeless': size_json['sizeless'],
+                'updated_at': datetime.now()
+            })
+        except Exception as e:
+            print(e)
+            continue
+    return result
+
+def get_origin_files(origin_path, max_depth):
+    '''
+     > rclone lsjson aliyun: --max-depth 3 --files-only
+    '''
+    try:
+        result = subprocess.run(
+            ['rclone', 'lsjson', origin_path, '--max-depth', max_depth, '--files-only'],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding='utf-8'
+        )
+        try:
+            return json.loads(result.stdout)
+        except Exception as e:
+            raise Exception(f"执行rclone命令失败: {e}")
+
+    except FileNotFoundError:
+        raise Exception("Rclone未安装或未添加到系统PATH")
+    except subprocess.CalledProcessError as e:
+        error_msg = e.stderr or '未知错误'
+        raise Exception(f"执行rclone命令失败: {error_msg}")
+    except json.JSONDecodeError:
+        raise Exception("解析rclone配置输出失败")

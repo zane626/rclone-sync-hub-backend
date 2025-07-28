@@ -1,8 +1,8 @@
 from flask_restx import Namespace, Resource, fields, reqparse
-from app.models.item import Item
+from app.api.v1.models import Item
 from flask import request
-from app.services.item_service import ItemService
-from app.models.item import ItemCreate, ItemUpdate
+from app.api.v1.services.item_service import ItemService
+from app.api.v1.models import ItemCreate, ItemUpdate
 from pydantic import ValidationError
 
 api = Namespace('demo', description='Demo 相关接口')

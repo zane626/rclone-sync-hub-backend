@@ -1,12 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime
-from typing import List
-from bson import ObjectId
-from pymongo.collection import Collection
-from app.models.task import Task, TaskCreate, TaskUpdate
-from app.services.base_services import BaseServices
-from app.utils.db import get_db
+from app.api.v1.models.task import Task
+from app.api.v1.services.base_services import BaseServices
+
 
 class TaskService(BaseServices):
     def __init__(self):

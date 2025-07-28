@@ -99,3 +99,11 @@ class BaseServices:
         if 'id' in query:
             query['_id'] = ObjectId(query.pop('id'))
         return self.collection.count_documents(filter=query)
+
+    def get_all_items(self):
+        items_cursor = self.collection.find()
+        items_list = []
+        for item in items_cursor:
+            item['_id'] = str(item['_id'])
+            items_list.append(item)
+        return items_list

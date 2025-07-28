@@ -2,8 +2,7 @@ from pydantic import BaseModel, Field, validator
 from typing import Optional, List
 from datetime import datetime
 from bson import ObjectId
-import re
-from app.models.base import PyObjectId
+from app.api.v1.models.base import PyObjectId
 
 
 class LogBase(BaseModel):

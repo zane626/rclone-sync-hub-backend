@@ -1,11 +1,7 @@
-from datetime import datetime
-from pydoc import describe
-
 from flask_restx import Namespace, Resource, fields, reqparse
 from flask import request, abort
-from bson import ObjectId
-from app.services.task_service import TaskService
-from app.models.task import TaskCreate, TaskUpdate
+from app.api.v1.services.task_service import TaskService
+from app.api.v1.models.task import TaskCreate, TaskUpdate
 from pydantic import ValidationError
 
 api = Namespace('tasks', description='任务相关操作')
@@ -37,7 +33,9 @@ task_model = api.model('Task', {
 
 task_create_model = api.model('TaskCreate', {
     'localPath': fields.String(required=True, description='本地路径', min_length=1, max_length=100),
-    'remotePath': fields.String(required=True, description='远程路径', min_length=1, max_length=100),
+    'originPath': fields.String(required=True, description='远程路径', min_length=1, max_length=100),
+    'syncType': fields.String(required=True, description='同步类型', min_length=1, max_length=100),
+    'remotePath': fields.String(description='目标路径 ', min_length=1, max_length=100),
     'origin': fields.String(required=True, description='网盘', min_length=1, max_length=100),
 })
 

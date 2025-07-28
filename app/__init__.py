@@ -1,9 +1,10 @@
 from flask import Flask
 from flask_restx import Api
-from app.api.v1.endpoints.folder_routes import api as folder_ns
-from app.api.v1.endpoints.task_routes import api as task_ns
-from app.api.v1.endpoints.rclone_routes import api as rclone_ns
-from app.api.v1.endpoints.info_routes import api as info_ns
+from app.api.v1.routes.folder_routes import api as folder_ns
+from app.api.v1.routes.task_routes import api as task_ns
+from app.api.v1.routes.rclone_routes import api as rclone_ns
+from app.api.v1.routes.info_routes import api as info_ns
+from app.api.v1.routes.origin_routes import api as origin_ns
 from app.config import DevelopmentConfig, TestingConfig, ProductionConfig
 from app.utils.db import close_db_connection
 import os
@@ -48,6 +49,7 @@ def create_app(config_name=None):
     api.add_namespace(task_ns)
     api.add_namespace(rclone_ns)
     api.add_namespace(info_ns)
+    api.add_namespace(origin_ns)
 
     @app.route('/')
     def hello():

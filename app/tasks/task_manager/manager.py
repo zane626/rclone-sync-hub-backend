@@ -4,8 +4,8 @@ import time
 import threading
 from datetime import datetime
 
-from app.models.task import TaskCreate
-from app.tasks.task_manager.rclone_operator import check_file_exists
+from app.api.v1.models.task import TaskCreate
+from app.tasks.task_manager.rclone_operator import check_file_exists, get_origin_files
 from app.utils.db import mongo_db
 from app.tasks.task_manager.queue import TaskQueue
 from app.utils.logger import Logger
@@ -24,9 +24,9 @@ class TaskManager:
         collection = self.mongo_db.get_collection('tasks')
         collection.insert_one(task.model_dump())
 
-    def find_task_by_local_path(self, local_path: str):
+    def find_task_by_db(self, query: dict):
         collection = self.mongo_db.get_collection('tasks')
-        return collection.find_one({'localPath': local_path})
+        return collection.find_one(query)
 
     def scan_directory(self, local_path, max_depth, folder_id=None, folder_name=None, remote_path='', origin=''):
         """递归扫描目录（优化版）"""
@@ -47,15 +47,47 @@ class TaskManager:
         except Exception as e:
             self.log_error(f"遍历异常: {str(e)}")
 
-    def should_skip_path(self, root, base_path, max_depth):
+    def scan_remote_directory(self, origin_path, max_depth, folder_id=None, folder_name=None, remote_path='', origin=''):
+        """递归扫描远程目录（优化版）"""
+        if not check_file_exists(origin_path):
+            print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 无效路径: {origin_path}")
+            return
+        file_list = get_origin_files(origin_path, max_depth)
+        for file in file_list:
+            if file['IsDir']:
+                continue
+            file_path = os.path.join(origin_path, file['Path']).replace('\\', '/')
+            if self.find_task_by_db({'remotePath': remote_path, 'origin': origin, 'originPath': file_path}):
+                continue
+            remote_file_dir = self.build_remote_dir(file_path, origin_path, remote_path)
+            remote_file_path = os.path.join(remote_path, file['Path']).replace('\\', '/')
+            is_has = check_file_exists(f'{origin}:{remote_file_path}')
+            filename = file['Name']
+            task_json = {
+                'localPath': file_path,
+                'remotePath': remote_file_dir,
+                'origin': origin,
+                'status': 3 if is_has else 0,
+                'progress': '100' if is_has else '0',
+                'name': folder_name,
+                'folderId': folder_id,
+                'fileName': filename,
+                'fileSize': self.get_size_format(file['Size']),
+                'created_at': datetime.now(),
+            }
+            task_item = TaskCreate(**task_json)
+            self.add_task(task_item)
+
+    @staticmethod
+    def should_skip_path(root, base_path, max_depth):
         """判断是否跳过当前路径"""
         current_depth = root[len(base_path):].count(os.sep)
         if current_depth > max_depth:
             print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 超过最大深度{max_depth}层，停止遍历: {root}")
             return True
         return False
-
-    def filter_hidden_files(self, files):
+    @staticmethod
+    def filter_hidden_files(files):
         """过滤隐藏文件"""
         return [f for f in files if not f.startswith('.') and not f.endswith('~')]
 
@@ -66,14 +98,17 @@ class TaskManager:
             remote_file_dir = self.build_remote_dir(file_path, local_path, remote_path)
             self.create_task_if_needed(file_path, remote_file_dir, origin, folder_id, folder_name, file)
 
-    def build_remote_dir(self, file_path, local_path, remote_path):
+    @staticmethod
+    def build_remote_dir(file_path, local_path, remote_path):
         """构建远程路径"""
         relative_path = os.path.relpath(file_path, local_path)
         remote_file_path = os.path.join(remote_path, relative_path).replace('\\', '/')
         return os.path.dirname(remote_file_path)
 
-    def get_size_format(self, file_path: str):
-        size_bytes = os.path.getsize(file_path)
+    @staticmethod
+    def get_size_format(file_path: str, size_bytes=None):
+        if not size_bytes:
+            size_bytes = os.path.getsize(file_path)
         """
         将字节数转换为易读的大小格式 (如 2.5MB)
 
@@ -99,7 +134,7 @@ class TaskManager:
     def create_task_if_needed(self, file_path, remote_dir, origin, folder_id, folder_name, filename):
         """创建任务（如果不存在）"""
         real_path = os.path.realpath(file_path)
-        if self.find_task_by_local_path(real_path):
+        if self.find_task_by_db({'localPath': real_path, 'origin': origin, 'remotePath': remote_dir}):
             return
 
         is_has = check_file_exists(f'{origin}:{os.path.join(remote_dir, filename)}')
@@ -118,6 +153,7 @@ class TaskManager:
         task_item = TaskCreate(**task_json)
         self.add_task(task_item)
 
+    @staticmethod
     def log_error(self, message):
         """统一错误日志"""
         print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {message}")
@@ -130,7 +166,10 @@ class TaskManager:
             # 记录检测前的任务数量
             initial_tasks_count = tasks_collection.count_documents({})
             collection.update_one({'_id': folder['_id']}, {'$set': {'status': 1}})
-            self.scan_directory(folder['localPath'], 10, folder['_id'], folder['name'], folder['remotePath'], folder['origin'])
+            if folder['syncType'] == 'remote':
+                self.scan_remote_directory(folder['originPath'], folder['maxDepth'], folder['_id'], folder['name'], folder['remotePath'], folder['origin'])
+            else:
+                self.scan_directory(folder['localPath'], folder['maxDepth'], folder['_id'], folder['name'], folder['remotePath'], folder['origin'])
             # 计算新增的任务数量
             final_tasks_count = tasks_collection.count_documents({})
             new_tasks_count = final_tasks_count - initial_tasks_count

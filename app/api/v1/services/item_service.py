@@ -3,7 +3,7 @@ from __future__ import annotations
 from bson import ObjectId
 from datetime import datetime
 from app.utils.db import get_db
-from app.models.item import ItemCreate, ItemUpdate # 假设 ItemUpdate 用于更新时的数据结构
+from app.api.v1.models.item import ItemCreate, ItemUpdate # 假设 ItemUpdate 用于更新时的数据结构
 
 class ItemService:
     def __init__(self):

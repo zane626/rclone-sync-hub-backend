@@ -1,8 +1,6 @@
 from __future__ import annotations
-from bson import ObjectId
-from typing import List, Optional
-from app.models.folder import Folder, FolderCreate, FolderUpdate, PyObjectId
-from app.services.base_services import BaseServices
+from app.api.v1.models.folder import Folder
+from app.api.v1.services.base_services import BaseServices
 
 class FolderService(BaseServices):
     def __init__(self):
