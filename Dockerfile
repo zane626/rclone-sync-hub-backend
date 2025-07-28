@@ -17,29 +17,19 @@ RUN curl https://rclone.org/install.sh | bash
 # 设置工作目录
 WORKDIR /app
 
+# 复制项目文件
+COPY . /app/
+
 # 安装Python依赖
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt \
+RUN pip3 install -r requirements.txt \
     -i https://mirrors.aliyun.com/pypi/simple/ \
     --trusted-host mirrors.aliyun.com \
-    --default-timeout=1000
-
-# 复制项目文件
-COPY . .
-
-# 设置环境变量
-ENV PYTHONPATH=/app
-ENV FLASK_APP=app
-ENV FLASK_ENV=production
-
-# 创建日志目录
-RUN mkdir -p /var/log/supervisor
-
-# 复制supervisor配置文件
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+    --default-timeout=1000 \
+    --no-cache-dir
+#RUN pip3 install -r requirements.txt
 
 # 暴露端口
 EXPOSE 5001
 
 # 启动命令
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+CMD ["gunicorn", "--config", "gunicorn.conf.py", "--bind", "0.0.0.0:5001", "--workers", "1", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "app:create_app()"]

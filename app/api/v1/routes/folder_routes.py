@@ -19,6 +19,7 @@ folder_fields = api.model('Folder', {
     'syncType': fields.String(required=True, description='同步类型', min_length=1, max_length=100),
     'remotePath': fields.String(required=True, description='目标路径', min_length=1, max_length=100),
     'maxDepth': fields.Integer(required=True, description='最大深度'),
+    'uploadNum': fields.Integer(required=True, description='上传数量'),
     'created_at': fields.DateTime(dt_format='iso8601', description='创建时间'),
     'updated_at': fields.DateTime(dt_format='iso8601', description='最后更新时间')
 })
