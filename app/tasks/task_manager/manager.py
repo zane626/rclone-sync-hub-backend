@@ -57,9 +57,9 @@ class TaskManager:
             if file['IsDir']:
                 continue
             file_path = os.path.join(origin_path, file['Path']).replace('\\', '/')
-            if self.find_task_by_db({'remotePath': remote_path, 'origin': origin, 'originPath': file_path}):
-                continue
             remote_file_dir = self.build_remote_dir(file_path, origin_path, remote_path)
+            if self.find_task_by_db({'remotePath': remote_file_dir, 'origin': origin, 'localPath': file_path}):
+                continue
             remote_file_path = os.path.join(remote_path, file['Path']).replace('\\', '/')
             is_has = check_file_exists(f'{origin}:{remote_file_path}')
             filename = file['Name']
