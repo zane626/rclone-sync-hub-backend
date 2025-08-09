@@ -166,6 +166,7 @@ class TaskManager:
         tasks_collection = self.mongo_db.get_collection('tasks')
         folders = collection.find({'status': status})
         for folder in folders:
+            print(f'检测文件夹  --->{folder["name"]} {folder["syncType"]}')
             # 记录检测前的任务数量
             initial_tasks_count = tasks_collection.count_documents({})
             collection.update_one({'_id': folder['_id']}, {'$set': {'status': 1}})
@@ -193,7 +194,7 @@ value = os.environ.get('DELAY')
 _delay = int(value) if value and value.isdigit() else 60 * 10
 
 def initialize_the_project():
-    print('------->初始化定时任务脚本<-------')
+    print(f'------->初始化定时任务脚本 {_delay}s执行一次<-------')
     '''
     TODO: 从数据库中读取delay时间
     '''

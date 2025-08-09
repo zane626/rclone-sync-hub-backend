@@ -4,6 +4,12 @@ FROM python:3.10-slim
 ENV TZ=Asia/Shanghai
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
+# 先写入完整的 Debian Bookworm 源
+RUN echo "deb http://mirrors.aliyun.com/debian bookworm main contrib non-free non-free-firmware\n\
+deb http://mirrors.aliyun.com/debian bookworm-updates main contrib non-free non-free-firmware\n\
+deb http://mirrors.aliyun.com/debian-security bookworm-security main contrib non-free non-free-firmware" \
+    > /etc/apt/sources.list
+
 # 安装系统依赖
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
@@ -32,4 +38,4 @@ RUN pip3 install -r requirements.txt \
 EXPOSE 5001
 
 # 启动命令
-CMD ["gunicorn", "--config", "gunicorn.conf.py", "--bind", "0.0.0.0:5001", "--workers", "1", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "app:create_app()"]
+CMD ["gunicorn", "--config", "gunicorn_conf.py", "--bind", "0.0.0.0:5001", "--workers", "1", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "app:create_app()"]

@@ -20,14 +20,14 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
+      - ./redis_data:/data
       - ./logs:/var/log/supervisor
     networks:
       - rclone-sync-net
     restart: unless-stopped
 
   backend:
-    build: zane626/rclone-sync-hub-backend:latest
+    image: zane626/rclone-sync-hub-backend:latest
     container_name: rclone-sync-hub-backend_container
     environment:
       - FLASK_APP=app
@@ -45,7 +45,8 @@ services:
       - rclone-sync-net
     restart: unless-stopped
     volumes:
-      - .:/app
+      - .:/volume
+      - ./config:/root/.config/rclone
 
   frontend:
     image: zane626/rclone-sync-hub-frontend:latest
