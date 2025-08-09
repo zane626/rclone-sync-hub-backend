@@ -207,6 +207,7 @@ class RcloneCommand:
                 'finishedAt': datetime.now(),
                 'duration': str(datetime.now() - self.created_at),
             })
+            self.folder_collection.update_one({"_id": self.task['folderId']}, {"$inc": {'uploadNum': 1}, '$set': {'lastSyncAt': datetime.now()}})
             self.logger.add_log({
                 'name': '任务完成',
                 'description': f'任务 {self.task["fileName"]} 已完成 耗时: {str(datetime.now() - self.created_at)}'

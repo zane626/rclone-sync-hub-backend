@@ -18,10 +18,12 @@ folder_fields = api.model('Folder', {
     'originPath': fields.String(required=True, description='远程路径', min_length=1, max_length=100),
     'syncType': fields.String(required=True, description='同步类型', min_length=1, max_length=100),
     'remotePath': fields.String(required=True, description='目标路径', min_length=1, max_length=100),
+    'status': fields.Integer(required=True, description="文件夹状态，0为未检测，1为检测中，2为监听中"),
     'maxDepth': fields.Integer(required=True, description='最大深度'),
     'uploadNum': fields.Integer(required=True, description='上传数量'),
     'created_at': fields.DateTime(dt_format='iso8601', description='创建时间'),
-    'updated_at': fields.DateTime(dt_format='iso8601', description='最后更新时间')
+    'updated_at': fields.DateTime(dt_format='iso8601', description='最后更新时间'),
+    'lastSyncAt': fields.DateTime(dt_format='iso8601', description='最后同步时间'),
 })
 
 folder_create_fields = api.model('FolderCreate', {
