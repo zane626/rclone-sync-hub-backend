@@ -1,11 +1,11 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 from typing import Optional
-from app.api.v1.models.base import PyObjectId
+from app.api.v1.models.base import PyObjectId, BaseModelWithConfig
 
 
-class TaskBase(BaseModel):
+class TaskBase(BaseModelWithConfig):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     folderId: PyObjectId = Field(..., description="文件夹ID")
     name: Optional[str] = Field(..., min_length=1, max_length=100, description="文件夹名称")

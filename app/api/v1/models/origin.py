@@ -1,8 +1,8 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 from typing import Optional
-from app.api.v1.models.base import PyObjectId
+from app.api.v1.models.base import BaseModelWithConfig, PyObjectId
 
 """
 {
@@ -10,7 +10,7 @@ from app.api.v1.models.base import PyObjectId
   "总容量为 {bytes}"
 }
 """
-class OriginBase(BaseModel):
+class OriginBase(BaseModelWithConfig):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     name: str = Field(..., min_length=1, max_length=100, description="云盘名称")
     size_json: str = Field(..., min_length=1, max_length=100, description="云盘大小")

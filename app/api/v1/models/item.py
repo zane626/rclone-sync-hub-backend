@@ -1,30 +1,16 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import Field, validator
 from typing import Optional, List
 from datetime import datetime
 from bson import ObjectId
 import re
+from app.api.v1.models.base import PyObjectId, BaseModelWithConfig
 
 # Pydantic 对 ObjectId 的支持需要自定义类型或转换
 # 我们可以使用 Annotated 和 BeforeValidator 来处理 ObjectId
 # 或者在模型外部处理转换
 
-class PyObjectId(ObjectId):
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
 
-    @classmethod
-    def validate(cls, v, field_validation_info):
-        if not ObjectId.is_valid(v):
-            raise ValueError("无效的 ObjectId")
-        return ObjectId(v)
-
-    @classmethod
-    def __get_pydantic_json_schema__(cls, field_schema):
-        field_schema.update(type='string')
-
-
-class ItemBase(BaseModel):
+class ItemBase(BaseModelWithConfig):
     """
     物品基础信息
     - id: 物品唯一标识
@@ -40,13 +26,6 @@ class ItemBase(BaseModel):
 class Item(ItemBase):
     created_at: datetime = Field(default_factory=datetime.now, description="创建时间")
     updated_at: Optional[datetime] = Field(None, description="最后更新时间")
-
-    class Config:
-        json_encoders = {
-            ObjectId: str,
-            datetime: lambda v: v.isoformat()
-        }
-        populate_by_name = True
 
     @validator('name')
     def name_must_not_be_empty(cls, value):

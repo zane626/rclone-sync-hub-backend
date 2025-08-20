@@ -7,12 +7,14 @@ from app.api.v1.routes.info_routes import api as info_ns
 from app.api.v1.routes.origin_routes import api as origin_ns
 from app.config import DevelopmentConfig, TestingConfig, ProductionConfig
 from app.utils.db import close_db_connection
+from app.utils.json_encoder import CustomJSONEncoder
 import os
 from flask_cors import CORS
 from app.celery_app import celery, make_celery
 
 def create_app(config_name=None):
     app = Flask(__name__)
+    app.json_encoder = CustomJSONEncoder  # 注册自定义JSON编码器
     CORS(app)  # 默认允许所有域名访问所有路由
 
     # Initialize Celery
@@ -44,6 +46,15 @@ def create_app(config_name=None):
     api = Api(app, version='1.0', title='RcloneSyncHub API',
               description='RcloneSyncHub 后端接口文档，基于 Flask-RESTX 自动生成',
               doc='/api')
+    
+    # 配置API的JSON编码器
+    @api.representation('application/json')
+    def output_json(data, code, headers=None):
+        from flask import make_response, current_app
+        import json
+        resp = make_response(json.dumps(data, cls=CustomJSONEncoder), code)
+        resp.headers.extend(headers or {})
+        return resp
     # 注册命名空间
     api.add_namespace(folder_ns)
     api.add_namespace(task_ns)

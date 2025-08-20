@@ -1,25 +1,11 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import Field, validator
 from typing import Optional, List
 from datetime import datetime
 from bson import ObjectId
 import re
+from app.api.v1.models.base import PyObjectId, BaseModelWithConfig
 
-class PyObjectId(ObjectId):
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v, field_validation_info):
-        if not ObjectId.is_valid(v):
-            raise ValueError("无效的 ObjectId")
-        return ObjectId(v)
-
-    @classmethod
-    def __get_pydantic_json_schema__(cls, field_schema):
-        field_schema.update(type='string')
-
-class FolderBase(BaseModel):
+class FolderBase(BaseModelWithConfig):
     """
     文件夹基础信息
     - name: 文件夹名称
@@ -51,7 +37,7 @@ class FolderCreate(FolderBase):
     """用于创建文件夹的请求体"""
     pass
 
-class FolderUpdate(BaseModel):
+class FolderUpdate(BaseModelWithConfig):
     """用于更新文件夹的请求体"""
     name: str = Field(..., min_length=1, max_length=100, description="文件夹名称")
     localPath: str = Field(..., min_length=1, max_length=100, description="本地路径")
