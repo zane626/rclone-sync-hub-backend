@@ -34,8 +34,11 @@ RUN pip3 install -r requirements.txt \
     --no-cache-dir
 #RUN pip3 install -r requirements.txt
 
-# 暴露端口
-EXPOSE 5001
+# 创建supervisor日志目录
+RUN mkdir -p /var/log/supervisor
 
-# 启动命令
-CMD ["gunicorn", "--config", "gunicorn_conf.py", "--bind", "0.0.0.0:5001", "--workers", "1", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "app:create_app()"]
+# 暴露端口
+EXPOSE 5001 5555
+
+# 启动命令 - 使用supervisord管理多个进程（gunicorn + celery worker + celery beat）
+CMD ["supervisord", "-c", "/app/supervisord.conf"]

@@ -1,10 +1,10 @@
-import os
 from datetime import timedelta
 from celery.schedules import crontab
+from app.config import Config
 
 # Broker settings
-broker_url = os.environ.get('CELERY_BROKER_URL') or 'redis://localhost:6379/0'
-result_backend = os.environ.get('CELERY_RESULT_BACKEND') or 'redis://localhost:6379/0'
+broker_url = Config.CELERY_BROKER_URL
+result_backend = Config.CELERY_RESULT_BACKEND
 
 # Task settings
 task_serializer = 'json'
@@ -27,11 +27,22 @@ beat_schedule = {
         'schedule': timedelta(minutes=30),
         'args': ()
     },
-    # Add more scheduled tasks here
+    # When enabling Celery-based initialize flow, we can schedule periodic checks here if needed.
+    # These can be overridden by environment variables at runtime.
 }
 
 # Task routes
+# Define two distinct logical queues: 'manage' for scanning/management and 'celery' for execution
+# Default routes can be overridden by environment variables via CELERY_ config
+TASK_QUEUE_MANAGE = Config.TASK_QUEUE_MANAGE
+TASK_QUEUE_EXEC = Config.TASK_QUEUE_EXEC
+
 task_routes = {
-    'tasks.*': {'queue': 'default'},
-    'task_manager.*': {'queue': 'tasks'},
+    # Management/scanning related tasks
+    'task_manager.loop_check_folders': {'queue': TASK_QUEUE_MANAGE},
+    # Execution/worker related tasks
+    'task_manager.loop_check_task': {'queue': TASK_QUEUE_EXEC},
+    # Keep previous patterns mapped to default queues for backward compatibility
+    'tasks.*': {'queue': Config.CELERY_DEFAULT_QUEUE},
+    'task_manager.*': {'queue': Config.CELERY_TASKS_QUEUE},
 }

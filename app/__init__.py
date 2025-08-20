@@ -5,7 +5,7 @@ from app.api.v1.routes.task_routes import api as task_ns
 from app.api.v1.routes.rclone_routes import api as rclone_ns
 from app.api.v1.routes.info_routes import api as info_ns
 from app.api.v1.routes.origin_routes import api as origin_ns
-from app.config import DevelopmentConfig, TestingConfig, ProductionConfig
+from app.config import DevelopmentConfig, TestingConfig, ProductionConfig, Config
 from app.utils.db import close_db_connection
 from app.utils.json_encoder import CustomJSONEncoder
 import os
@@ -17,11 +17,10 @@ def create_app(config_name=None):
     app.json_encoder = CustomJSONEncoder  # 注册自定义JSON编码器
     CORS(app)  # 默认允许所有域名访问所有路由
 
-    # Initialize Celery
-    # app.config.from_object('celery_config')
+    # Initialize Celery with centralized config
     app.config.update(
-        CELERY_BROKER_URL=os.environ.get('CELERY_BROKER_URL') or 'redis://localhost:6379/0',
-        CELERY_RESULT_BACKEND=os.environ.get('CELERY_RESULT_BACKEND') or 'redis://localhost:6379/0'
+        CELERY_BROKER_URL=Config.CELERY_BROKER_URL,
+        CELERY_RESULT_BACKEND=Config.CELERY_RESULT_BACKEND
     )
     
     # Configure Celery

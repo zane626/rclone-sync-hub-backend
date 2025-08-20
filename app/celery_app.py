@@ -1,7 +1,8 @@
 from celery import Celery
 from flask import Flask
 from celery.signals import worker_ready, worker_shutdown
-import os
+from app.config import Config
+
 
 def make_celery(app: Flask = None) -> Celery:
     """
@@ -27,10 +28,11 @@ def make_celery(app: Flask = None) -> Celery:
 
 # Create a default Celery app instance for command line use
 app = Flask(__name__)
-# app.config.from_object('celery_config')
+# Ensure celery configuration (queues, routes, beat) is loaded
+app.config.from_object('app.celery_config')
 app.config.update(
-    CELERY_BROKER_URL=os.environ.get('CELERY_BROKER_URL') or 'redis://localhost:6379/0',
-    CELERY_RESULT_BACKEND=os.environ.get('CELERY_RESULT_BACKEND') or 'redis://localhost:6379/0'
+    CELERY_BROKER_URL=Config.CELERY_BROKER_URL,
+    CELERY_RESULT_BACKEND=Config.CELERY_RESULT_BACKEND
 )
 
 # Initialize Celery

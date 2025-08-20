@@ -6,9 +6,15 @@ from datetime import datetime
 
 from app.api.v1.models.task import TaskCreate
 from app.tasks.task_manager.rclone_operator import check_file_exists, get_origin_files
-from app.utils.db import mongo_db
+from app.utils.db import DatabaseManager
 from app.tasks.task_manager.queue import TaskQueue
 from app.utils.logger import Logger
+from app.config import Config
+
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class TaskManager:
@@ -190,28 +196,58 @@ class TaskManager:
         self.loop.call_later(delay, self.check_folders, 0, delay)
         self.loop.run_forever()
 
-value = os.environ.get('DELAY')
-_delay = int(value) if value and value.isdigit() else 60 * 10
 
 def initialize_the_project():
-    print(f'------->初始化定时任务脚本 {_delay}s执行一次<-------')
+    print(f'------->初始化定时任务脚本 {Config.DELAY}s执行一次<-------')
     '''
     TODO: 从数据库中读取delay时间
     '''
+    mongo_db = DatabaseManager.get_db()
     folder_collection = mongo_db.get_collection('folders')
     task_collection = mongo_db.get_collection('tasks')
     folder_collection.update_many({'status': 1}, {'$set': {'status': 2}})
     task_collection.update_many({'status': {'$in': [1, 2]}}, {'$set': {'status': 0}})
-    threading.Thread(target=loop_check_folders).start()
-    threading.Thread(target=loop_check_task).start()
 
+    # 环境变量控制运行模式：manage（原线程模式）或 celery（Celery任务模式）
+    # 默认使用 celery 模式以利用分布式队列
+    run_mode = Config.TASK_RUN_MODE.lower()
+
+    if run_mode == 'manage':
+        # 保持原有线程方式
+        threading.Thread(target=loop_check_folders).start()
+        threading.Thread(target=loop_check_task).start()
+    else:
+        # 使用Celery任务来调度
+        initialize_the_project_celery(Config.DELAY)
+
+
+def initialize_the_project_celery(delay: int = None):
+    """
+    使用Celery调度初始化任务：
+    - 将文件夹检测任务发送到 'manage' 队列
+    - 将任务队列执行发送到 'celery' 队列
+    可通过环境变量 TASK_QUEUE_MANAGE / TASK_QUEUE_EXEC 覆盖队列名称
+    """
+    if delay is None:
+        delay = Config.DELAY
+
+    # 发送一次性任务（由Celery Beat或外部调度负责周期性）
+    from app.celery_app import celery as celery_app
+
+    manage_queue = Config.TASK_QUEUE_MANAGE
+    exec_queue = Config.TASK_QUEUE_EXEC
+
+    # 使用apply_async并显式指定队列
+    celery_app.send_task('task_manager.loop_check_folders', args=[delay], queue=manage_queue)
+    celery_app.send_task('task_manager.loop_check_task', args=[delay], queue=exec_queue)
 
 
 def loop_check_folders():
+    mongo_db = DatabaseManager.get_db()
     task_manager = TaskManager(mongo_db)
-    task_manager.add_task_with_delay(_delay)
+    task_manager.add_task_with_delay(Config.DELAY)
 
 
 def loop_check_task():
     task_queue = TaskQueue(num_threads=2)
-    task_queue.add_task_with_delay(_delay)
+    task_queue.add_task_with_delay(Config.DELAY)
