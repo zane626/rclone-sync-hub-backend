@@ -66,3 +66,7 @@ def init_app(app):
 
 def close_db_connection():
     DatabaseManager.close_connections()
+
+
+# 全局数据库对象（供需要直接访问数据库的模块使用）
+mongo_db = DatabaseManager.get_db()

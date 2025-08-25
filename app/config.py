@@ -74,8 +74,8 @@ class Config:
     CELERY_WORKER_HOSTNAME = ConfigManager.get_config('CELERY_WORKER_HOSTNAME', 'worker1@%h')
     
     # Celery Beat 配置
-    CELERY_BEAT_SCHEDULE_FILE = ConfigManager.get_config('CELERY_BEAT_SCHEDULE_FILE', 'celerybeat-schedule')
-    CELERY_BEAT_PIDFILE = ConfigManager.get_config('CELERY_BEAT_PIDFILE', 'celerybeat.pid')
+    CELERY_BEAT_SCHEDULE_FILE = ConfigManager.get_config('CELERY_BEAT_SCHEDULE_FILE', '/app/celerybeat-schedule')
+    CELERY_BEAT_PIDFILE = ConfigManager.get_config('CELERY_BEAT_PIDFILE', '/app/celerybeat.pid')
     
     # Flower 配置
     FLOWER_PORT = ConfigManager.get_int_config('FLOWER_PORT', 5555)

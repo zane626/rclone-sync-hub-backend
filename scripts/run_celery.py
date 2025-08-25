@@ -29,7 +29,7 @@ def _get_queues():
 
 
 def run_worker():
-    """Run the Celery worker."""
+    """Run the Celery worker with enhanced error handling."""
     cmd = [
         'celery',
         '-A', _get_app_arg(),
@@ -38,8 +38,36 @@ def run_worker():
         '--concurrency', str(Config.CELERY_WORKER_CONCURRENCY),
         '--hostname', Config.CELERY_WORKER_HOSTNAME,
         '--queues', _get_queues(),
+        '--max-tasks-per-child=1000',  # 防止内存泄漏
+        '--time-limit=300',  # 任务超时时间（秒）
+        '--soft-time-limit=240',  # 软超时时间（秒）
+        '--without-gossip',  # 减少网络开销
+        '--without-mingle',  # 减少启动时间
+        '--without-heartbeat',  # 减少网络开销
     ]
-    subprocess.call(cmd)
+    
+    # 添加重试机制
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            print(f"启动 Celery Worker (尝试 {attempt + 1}/{max_retries})")
+            result = subprocess.call(cmd)
+            if result == 0:
+                print("Celery Worker 正常退出")
+                break
+            else:
+                print(f"Celery Worker 异常退出，退出码: {result}")
+                if attempt < max_retries - 1:
+                    print(f"等待 5 秒后重试...")
+                    time.sleep(5)
+        except Exception as e:
+            print(f"启动 Celery Worker 时发生错误: {e}")
+            if attempt < max_retries - 1:
+                print(f"等待 5 秒后重试...")
+                time.sleep(5)
+            else:
+                print("达到最大重试次数，退出")
+                sys.exit(1)
 
 
 def run_beat():
@@ -52,7 +80,29 @@ def run_beat():
         '--schedule', Config.CELERY_BEAT_SCHEDULE_FILE,
         '--pidfile', Config.CELERY_BEAT_PIDFILE,
     ]
-    subprocess.call(cmd)
+    
+    # 添加重试机制
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            print(f"启动 Celery Beat (尝试 {attempt + 1}/{max_retries})")
+            result = subprocess.call(cmd)
+            if result == 0:
+                print("Celery Beat 正常退出")
+                break
+            else:
+                print(f"Celery Beat 异常退出，退出码: {result}")
+                if attempt < max_retries - 1:
+                    print(f"等待 5 秒后重试...")
+                    time.sleep(5)
+        except Exception as e:
+            print(f"启动 Celery Beat 时发生错误: {e}")
+            if attempt < max_retries - 1:
+                print(f"等待 5 秒后重试...")
+                time.sleep(5)
+            else:
+                print("达到最大重试次数，退出")
+                sys.exit(1)
 
 
 def run_flower():

@@ -113,7 +113,7 @@ Dockerfile 已改为使用 supervisord 同时托管：Gunicorn + Celery Worker +
 
 ```
 # 构建镜像
-docker build -t rclone-sync-hub-backend:local .
+docker build -t rclone-sync-hub-backend .
 
 # 确保本机已有 Redis 与 Mongo（可通过 compose 方式拉起）
 docker compose up -d mongodb redis

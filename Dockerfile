@@ -34,8 +34,13 @@ RUN pip3 install -r requirements.txt \
     --no-cache-dir
 #RUN pip3 install -r requirements.txt
 
-# 创建supervisor日志目录
-RUN mkdir -p /var/log/supervisor
+# 创建非root用户和必要的目录
+RUN groupadd -r appuser && useradd -r -g appuser appuser && \
+    mkdir -p /var/log/supervisor /var/run && \
+    chown -R appuser:appuser /app /var/log/supervisor /var/run
+
+# 切换到非root用户
+USER appuser
 
 # 暴露端口
 EXPOSE 5001 5555
