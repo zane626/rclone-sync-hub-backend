@@ -27,6 +27,18 @@ beat_schedule = {
         'schedule': timedelta(minutes=30),
         'args': ()
     },
+    # 文件夹检测定时任务
+    'loop-check-folders': {
+        'task': 'task_manager.loop_check_folders',
+        'schedule': timedelta(seconds=Config.DELAY),
+        'args': (Config.DELAY,)
+    },
+    # 任务队列检测定时任务
+    'loop-check-task': {
+        'task': 'task_manager.loop_check_task',
+        'schedule': timedelta(seconds=Config.DELAY),
+        'args': (Config.DELAY,)
+    },
     # When enabling Celery-based initialize flow, we can schedule periodic checks here if needed.
     # These can be overridden by environment variables at runtime.
 }

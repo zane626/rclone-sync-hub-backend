@@ -92,11 +92,7 @@ def celery_loop_check_folders(self, delay=None):
                     pass
         except Exception:
             pass
-        # 自我调度下一次执行，以模拟原有循环行为
-        try:
-            self.apply_async(args=[delay], countdown=delay, queue=manage_queue)
-        except Exception as schedule_err:
-            logger.error(f"调度下一次文件夹检测失败: {schedule_err}")
+        # 注意：定时调度现在由Celery Beat处理，不需要自我调度
 
 @celery.task(bind=True, name='task_manager.loop_check_task')  
 def celery_loop_check_task(self, delay=None):
@@ -138,8 +134,4 @@ def celery_loop_check_task(self, delay=None):
         logger.error(f"任务队列检测执行失败: {str(e)}")
         raise self.retry(exc=e, countdown=300)  # 5分钟后重试
     finally:
-        # 自我调度下一次执行，以模拟原有循环行为
-        try:
-            self.apply_async(args=[delay], countdown=delay, queue=exec_queue)
-        except Exception as schedule_err:
-            logger.error(f"调度下一次任务队列检测失败: {schedule_err}")
+        # 注意：定时调度现在由Celery Beat处理，不需要自我调度
