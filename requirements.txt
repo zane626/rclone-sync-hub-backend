@@ -5,6 +5,3 @@ python-dotenv
 Pydantic
 flask-restx
 flask-cors
-celery==5.3.6
-redis==5.0.1
-flower==2.0.1

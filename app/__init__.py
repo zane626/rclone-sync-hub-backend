@@ -10,23 +10,14 @@ from app.utils.db import close_db_connection
 from app.utils.json_encoder import CustomJSONEncoder
 import os
 from flask_cors import CORS
-from app.celery_app import celery, make_celery
+
 
 def create_app(config_name=None):
     app = Flask(__name__)
     app.json_encoder = CustomJSONEncoder  # 注册自定义JSON编码器
     CORS(app)  # 默认允许所有域名访问所有路由
 
-    # Initialize Celery
-    # app.config.from_object('celery_config')
-    app.config.update(
-        CELERY_BROKER_URL=os.environ.get('CELERY_BROKER_URL') or 'redis://localhost:6379/0',
-        CELERY_RESULT_BACKEND=os.environ.get('CELERY_RESULT_BACKEND') or 'redis://localhost:6379/0'
-    )
-    
-    # Configure Celery
-    celery.conf.update(app.config)
-    make_celery(app)
+
 
     if config_name == 'testing':
         app.config.from_object(TestingConfig)

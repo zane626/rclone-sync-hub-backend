@@ -3,8 +3,7 @@
 [![Docker](https://img.shields.io/badge/Docker-3.0+-blue)](https://www.docker.com)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-green)](https://python.org)
 [![Vue](https://img.shields.io/badge/Vue-3.3%2B-brightgreen)](https://vuejs.org)
-[![Celery](https://img.shields.io/badge/Celery-5.3%2B-yellowgreen)](https://docs.celeryq.dev/)
-[![Redis](https://img.shields.io/badge/Redis-7.0%2B-red)](https://redis.io/)
+
 
 智能文件同步管理系统，基于rclone实现自动化多线程同步，提供可视化监控界面。
 
@@ -19,7 +18,7 @@
 ## 🛠️ 技术栈
 | 组件          | 技术选型                  |
 |---------------|--------------------------|
-| 后端          | FastAPI + Celery + MongoDB |
+| 后端          | Flask + MongoDB |
 | 前端          | Vue3 + Pinia + NaiveUI   |
 | 存储          | MongoDB Atlas            |
 | 容器化        | Docker Compose           |
@@ -32,7 +31,7 @@
 | 基础接口 | ◻️ | 文件夹和任务创建接口 |
 | WebUI | ◻️ | 响应式界面设计 |
 | 文件监听 | ◻️ | 支持本地文件夹实时监控 |
-| 多线程同步 | ◻️ | 基于Celery实现并发任务处理 |
+| 多线程同步 | ◻️ | 基于线程池实现并发任务处理 |
 | 同步日志 | ◻️ | 记录所有同步操作及结果 |
 | Rclone配置 | ◻️ | 可视化管理远程存储配置 |
 | 同步策略 | ◻️ | 支持定时和手动触发 |
