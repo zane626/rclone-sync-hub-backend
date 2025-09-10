@@ -14,18 +14,6 @@ services:
       - rclone-sync-net
     restart: unless-stopped
 
-  redis:
-    image: redis:7.0-alpine
-    container_name: rclone-sync-redis_container
-    ports:
-      - "6379:6379"
-    volumes:
-      - ./redis_data:/data
-      - ./logs:/var/log/supervisor
-    networks:
-      - rclone-sync-net
-    restart: unless-stopped
-
   backend:
     image: zane626/rclone-sync-hub-backend:latest
     container_name: rclone-sync-hub-backend_container
@@ -33,28 +21,24 @@ services:
       - FLASK_APP=app
       - FLASK_ENV=production
       - MONGO_URI=mongodb://mongodb:27017/rclone
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     ports:
-      - "5001:5001"
-      - "5555:5555"  # Flower监控界面
+      - "5052:5001"
     depends_on:
       - mongodb
-      - redis
     networks:
-      - rclone-sync-net
+      - rclone-sync-netz
     restart: unless-stopped
     volumes:
-      - .:/volume
-      - ./config:/root/.config/rclone
+      - .:/volume # 挂载需要检测的资源文件夹
+      - ./config:/root/.config/rclone # 挂载rclone配置文件夹
 
   frontend:
     image: zane626/rclone-sync-hub-frontend:latest
     container_name: rclone-sync-hub-frontend_container
     ports:
-      - "8080:80"
+      - "5051:80"
     environment:
-      - API_URL=http://backend:5001  # 指向app服务
+      - API_URL=http://backend:5002  # 指向app服务
     depends_on:
       - backend
     networks:
